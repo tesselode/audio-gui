@@ -4,18 +4,19 @@ mod gui;
 use backend::ggez::GgezBackend;
 use ggez::graphics;
 use gui::{
-	control::{behavior::ControlBehavior, Control, ControlSettings},
+	control::{behavior::ControlBehavior, ControlSettings},
 	rectangle::Rectangle,
+	ControlId, Controls,
 };
 
 struct TestBehavior;
 
 impl ControlBehavior for TestBehavior {
-	fn on_hover(&mut self, _control: &mut Control, x: f32, y: f32) {
+	fn on_hover(&mut self, controls: &mut Controls, id: &ControlId, x: f32, y: f32) {
 		println!("hover: {}, {}", x, y);
 	}
 
-	fn on_unhover(&mut self, _control: &mut Control) {
+	fn on_unhover(&mut self, _controls: &mut Controls, _id: &ControlId) {
 		println!("unhover");
 	}
 }

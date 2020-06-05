@@ -10,27 +10,52 @@ use std::collections::HashMap;
 
 pub type ControlId = usize;
 
-pub struct Gui {
+pub struct Controls {
 	controls: HashMap<ControlId, Control>,
-	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior>>>,
 	next_control_id: ControlId,
+}
+
+impl Controls {
+	fn new() -> Self {
+		Self {
+			controls: HashMap::new(),
+			next_control_id: 0,
+		}
+	}
+
+	fn add(&mut self, settings: ControlSettings) -> ControlId {
+		let id = self.next_control_id;
+		self.next_control_id += 1;
+		self.controls.insert(id, Control::new(settings));
+		id
+	}
+
+	pub fn get(&self, id: &ControlId) -> Option<&Control> {
+		self.controls.get(id)
+	}
+
+	pub fn get_mut(&mut self, id: &ControlId) -> Option<&mut Control> {
+		self.controls.get_mut(id)
+	}
+}
+
+pub struct Gui {
+	pub controls: Controls,
+	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior>>>,
 	hovered_control: Option<ControlId>,
 }
 
 impl Gui {
 	pub fn new() -> Self {
 		Self {
-			controls: HashMap::new(),
+			controls: Controls::new(),
 			behaviors: HashMap::new(),
-			next_control_id: 0,
 			hovered_control: None,
 		}
 	}
 
 	pub fn add_control(&mut self, settings: ControlSettings) -> ControlId {
-		let id = self.next_control_id;
-		self.next_control_id += 1;
-		self.controls.insert(id, Control::new(settings));
+		let id = self.controls.add(settings);
 		self.behaviors.insert(id, vec![]);
 		id
 	}
@@ -43,30 +68,18 @@ impl Gui {
 		behaviors.push(behavior);
 	}
 
-	fn get_control_by_id(&self, id: usize) -> Option<&Control> {
-		self.controls.get(&id)
-	}
-
-	fn get_control_by_id_mut(&mut self, id: usize) -> Option<&mut Control> {
-		self.controls.get_mut(&id)
-	}
-
 	fn on_hover_control(&mut self, id: ControlId, x: f32, y: f32) {
-		if let Some(control) = self.controls.get_mut(&id) {
-			if let Some(behaviors) = self.behaviors.get_mut(&id) {
-				for behavior in behaviors {
-					behavior.on_hover(control, x, y);
-				}
+		if let Some(behaviors) = self.behaviors.get_mut(&id) {
+			for behavior in behaviors {
+				behavior.on_hover(&mut self.controls, &id, x, y);
 			}
 		}
 	}
 
 	fn on_unhover_control(&mut self, id: ControlId) {
-		if let Some(control) = self.controls.get_mut(&id) {
-			if let Some(behaviors) = self.behaviors.get_mut(&id) {
-				for behavior in behaviors {
-					behavior.on_unhover(control);
-				}
+		if let Some(behaviors) = self.behaviors.get_mut(&id) {
+			for behavior in behaviors {
+				behavior.on_unhover(&mut self.controls, &id);
 			}
 		}
 	}
@@ -74,7 +87,7 @@ impl Gui {
 	pub fn on_mouse_move(&mut self, x: f32, y: f32, dx: f32, dy: f32) {
 		let previous_hovered_control = self.hovered_control;
 		self.hovered_control = None;
-		for (id, control) in &self.controls {
+		for (id, control) in &self.controls.controls {
 			if control.rectangle.contains_point(x, y) {
 				self.hovered_control = Some(*id);
 				break;
@@ -95,7 +108,7 @@ impl Gui {
 	}
 
 	pub fn draw_debug(&self, display: &mut impl Display) {
-		for (id, control) in &self.controls {
+		for (id, control) in &self.controls.controls {
 			let color = if self.hovered_control == Some(*id) {
 				Color::new(1.0, 0.0, 0.0, 1.0)
 			} else {
