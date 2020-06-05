@@ -1,9 +1,11 @@
 pub mod control;
+pub mod display;
 pub mod mouse_button;
+pub mod point;
 pub mod rectangle;
 
 use control::{Control, ControlSettings};
-use ggez::graphics;
+use display::{Color, Display, DrawMode, Style};
 
 pub struct Gui {
 	controls: Vec<Control>,
@@ -69,22 +71,19 @@ impl Gui {
 		}
 	}
 
-	pub fn draw_debug(&self, mesh_builder: &mut graphics::MeshBuilder) {
+	pub fn draw_debug(&self, display: &mut impl Display) {
 		for control in &self.controls {
 			let color = if self.hovered_control == Some(control.id) {
-				graphics::Color::new(1.0, 0.0, 0.0, 1.0)
+				Color::new(1.0, 0.0, 0.0, 1.0)
 			} else {
-				graphics::WHITE
+				Color::new(1.0, 1.0, 1.0, 1.0)
 			};
-			mesh_builder.rectangle(
-				graphics::DrawMode::stroke(2.0),
-				graphics::Rect::new(
-					control.rectangle.x,
-					control.rectangle.y,
-					control.rectangle.width,
-					control.rectangle.height,
-				),
-				color,
+			display.draw_rectangle(
+				control.rectangle,
+				Style {
+					mode: DrawMode::Stroke(2.0),
+					color,
+				},
 			);
 		}
 	}
