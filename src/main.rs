@@ -4,18 +4,18 @@ mod gui;
 use backend::ggez::GgezBackend;
 use ggez::graphics;
 use gui::{
-	control::{behavior::ControlBehavior, ControlSettings},
+	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
 };
 
 struct TestBehavior;
 
 impl ControlBehavior for TestBehavior {
-	fn on_hover(&mut self, x: f32, y: f32) {
+	fn on_hover(&mut self, _control: &mut Control, x: f32, y: f32) {
 		println!("hover: {}, {}", x, y);
 	}
 
-	fn on_unhover(&mut self) {
+	fn on_unhover(&mut self, _control: &mut Control) {
 		println!("unhover");
 	}
 }
@@ -27,16 +27,16 @@ struct MainState {
 impl MainState {
 	pub fn new() -> Self {
 		let mut backend = GgezBackend::new();
-		backend.gui.add_control(ControlSettings {
+		let id = backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
 			height: 0,
-			behaviors: vec![Box::new(TestBehavior {})],
 		});
-		backend.gui.add_control(ControlSettings {
+		backend.gui.attach_behavior(id, Box::new(TestBehavior {}));
+		let id = backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(100.0, 100.0, 100.0, 100.0),
 			height: 1,
-			behaviors: vec![Box::new(TestBehavior {})],
 		});
+		backend.gui.attach_behavior(id, Box::new(TestBehavior {}));
 		Self { backend }
 	}
 }
