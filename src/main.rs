@@ -31,16 +31,16 @@ struct MainState {
 impl MainState {
 	pub fn new() -> Self {
 		let mut backend = GgezBackend::new();
-		let id = backend.gui.add_control(ControlSettings {
+		backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
 			height: 0,
+			behaviors: vec![Box::new(TestBehavior {})],
 		});
-		backend.gui.attach_behavior(id, Box::new(TestBehavior {}));
-		let id = backend.gui.add_control(ControlSettings {
+		backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(100.0, 100.0, 100.0, 100.0),
 			height: 1,
+			behaviors: vec![Box::new(TestBehavior {})],
 		});
-		backend.gui.attach_behavior(id, Box::new(TestBehavior {}));
 		Self { backend }
 	}
 }

@@ -29,7 +29,7 @@ impl Controls {
 		}
 	}
 
-	fn add(&mut self, settings: ControlSettings) -> ControlId {
+	fn add(&mut self, settings: &ControlSettings) -> ControlId {
 		let id = self.next_control_id;
 		self.next_control_id += 1;
 		self.controls.insert(id, Control::new(settings));
@@ -61,17 +61,9 @@ impl Gui {
 	}
 
 	pub fn add_control(&mut self, settings: ControlSettings) -> ControlId {
-		let id = self.controls.add(settings);
-		self.behaviors.insert(id, vec![]);
+		let id = self.controls.add(&settings);
+		self.behaviors.insert(id, settings.behaviors);
 		id
-	}
-
-	pub fn attach_behavior(&mut self, id: ControlId, behavior: Box<dyn ControlBehavior>) {
-		let behaviors = self
-			.behaviors
-			.get_mut(&id)
-			.expect(&format!("No control with ID {}", id));
-		behaviors.push(behavior);
 	}
 
 	fn emit(&mut self, event: Event, id: ControlId) {
