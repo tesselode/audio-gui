@@ -15,10 +15,19 @@ impl ControlBehavior for TestBehavior {
 	fn on(&mut self, event: gui::Event, _controls: &mut Controls, _id: &ControlId) {
 		match event {
 			gui::Event::Hover(x, y) => {
-				println!("hover: {}, {}", x, y);
+				println!("Hover: {}, {}", x, y);
 			}
 			gui::Event::Unhover => {
-				println!("unhover");
+				println!("Unhover");
+			}
+			gui::Event::Press(mouse_button, x, y) => {
+				println!("Press: {:?}, {}, {}", mouse_button, x, y);
+			}
+			gui::Event::Release(mouse_button, x, y) => {
+				println!("Release: {:?}, {}, {}", mouse_button, x, y);
+			}
+			gui::Event::Click(mouse_button, x, y) => {
+				println!("Click: {:?}, {}, {}", mouse_button, x, y);
 			}
 		}
 	}
@@ -50,8 +59,28 @@ impl ggez::event::EventHandler for MainState {
 		Ok(())
 	}
 
-	fn mouse_motion_event(&mut self, _ctx: &mut ggez::Context, x: f32, y: f32, dx: f32, dy: f32) {
-		self.backend.gui.on_mouse_move(x, y, dx, dy);
+	fn mouse_motion_event(&mut self, ctx: &mut ggez::Context, x: f32, y: f32, dx: f32, dy: f32) {
+		self.backend.mouse_motion_event(ctx, x, y, dx, dy);
+	}
+
+	fn mouse_button_down_event(
+		&mut self,
+		ctx: &mut ggez::Context,
+		button: ggez::event::MouseButton,
+		x: f32,
+		y: f32,
+	) {
+		self.backend.mouse_button_down_event(ctx, button, x, y);
+	}
+
+	fn mouse_button_up_event(
+		&mut self,
+		ctx: &mut ggez::Context,
+		button: ggez::event::MouseButton,
+		x: f32,
+		y: f32,
+	) {
+		self.backend.mouse_button_up_event(ctx, button, x, y);
 	}
 
 	fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {

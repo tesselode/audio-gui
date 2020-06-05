@@ -1,4 +1,6 @@
-#[derive(Copy, Clone)]
+use enum_map::Enum;
+
+#[derive(Copy, Clone, Enum, Debug)]
 pub enum MouseButton {
 	Left,
 	Middle,
