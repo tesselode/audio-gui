@@ -12,12 +12,15 @@ use gui::{
 struct TestBehavior;
 
 impl ControlBehavior for TestBehavior {
-	fn on_hover(&mut self, controls: &mut Controls, id: &ControlId, x: f32, y: f32) {
-		println!("hover: {}, {}", x, y);
-	}
-
-	fn on_unhover(&mut self, _controls: &mut Controls, _id: &ControlId) {
-		println!("unhover");
+	fn on(&mut self, event: gui::Event, _controls: &mut Controls, _id: &ControlId) {
+		match event {
+			gui::Event::Hover(x, y) => {
+				println!("hover: {}, {}", x, y);
+			}
+			gui::Event::Unhover => {
+				println!("unhover");
+			}
+		}
 	}
 }
 

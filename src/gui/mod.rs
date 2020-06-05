@@ -10,6 +10,12 @@ use std::collections::HashMap;
 
 pub type ControlId = usize;
 
+#[derive(Copy, Clone)]
+pub enum Event {
+	Hover(f32, f32),
+	Unhover,
+}
+
 pub struct Controls {
 	controls: HashMap<ControlId, Control>,
 	next_control_id: ControlId,
@@ -68,18 +74,10 @@ impl Gui {
 		behaviors.push(behavior);
 	}
 
-	fn on_hover_control(&mut self, id: ControlId, x: f32, y: f32) {
+	fn emit(&mut self, event: Event, id: ControlId) {
 		if let Some(behaviors) = self.behaviors.get_mut(&id) {
 			for behavior in behaviors {
-				behavior.on_hover(&mut self.controls, &id, x, y);
-			}
-		}
-	}
-
-	fn on_unhover_control(&mut self, id: ControlId) {
-		if let Some(behaviors) = self.behaviors.get_mut(&id) {
-			for behavior in behaviors {
-				behavior.on_unhover(&mut self.controls, &id);
+				behavior.on(event, &mut self.controls, &id);
 			}
 		}
 	}
@@ -98,11 +96,11 @@ impl Gui {
 				if let Some(control) = self.controls.get(&id) {
 					let relative_x = x - control.rectangle.x;
 					let relative_y = y - control.rectangle.y;
-					self.on_hover_control(id, relative_x, relative_y);
+					self.emit(Event::Hover(relative_x, relative_y), id);
 				}
 			}
 			if let Some(id) = previous_hovered_control {
-				self.on_unhover_control(id);
+				self.emit(Event::Unhover, id);
 			}
 		}
 	}
