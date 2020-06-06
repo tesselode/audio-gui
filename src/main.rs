@@ -4,7 +4,7 @@ mod gui;
 use backend::ggez::GgezBackend;
 use ggez::graphics;
 use gui::{
-	canvas::{Canvas, Color, DrawMode, Style},
+	canvas::{ArcKind, Canvas, Color, DrawMode, Style},
 	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
 	ControlId, Controls,
@@ -34,13 +34,23 @@ impl ControlBehavior for TestBehavior {
 	}
 
 	fn draw(&self, control: &Control, canvas: &mut Canvas) {
-		canvas.draw_rectangle(
-			control.rectangle,
-			Style {
-				mode: DrawMode::Fill,
-				color: Color::new(1.0, 1.0, 1.0, 0.5),
-			},
-		)
+		let style = Style {
+			mode: DrawMode::Stroke(4.0),
+			color: Color::new(1.0, 1.0, 1.0, 0.5),
+		};
+		canvas.draw_circle(
+			control.rectangle.get_center(),
+			control.rectangle.height / 2.0,
+			style,
+		);
+		canvas.draw_arc(
+			ArcKind::Open,
+			control.rectangle.get_center(),
+			control.rectangle.height / 2.5,
+			0.1,
+			0.5,
+			style,
+		);
 	}
 }
 

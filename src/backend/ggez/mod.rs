@@ -1,5 +1,5 @@
 use crate::gui::{
-	canvas::{Canvas, Color, DrawMode, Style},
+	canvas::{ArcKind, Canvas, Color, DrawMode, DrawOperation, Style},
 	mouse_button::MouseButton,
 	point::Point,
 	rectangle::Rectangle,
@@ -103,13 +103,58 @@ impl GgezBackend {
 		let mut created_meshes = false;
 		for operation in canvas.operations {
 			match operation {
-				crate::gui::canvas::DrawOperation::Rectangle(rectangle, style) => {
+				DrawOperation::Rectangle(rectangle, style) => {
 					mesh_builder.rectangle(style.mode.into(), rectangle.into(), style.color.into());
 					created_meshes = true;
 				}
-				crate::gui::canvas::DrawOperation::Circle(_, _, _) => {}
-				crate::gui::canvas::DrawOperation::Polyline(_, _) => {}
-				crate::gui::canvas::DrawOperation::Polygon(_, _) => {}
+				DrawOperation::Circle(position, radius, style) => {
+					mesh_builder.circle(
+						style.mode.into(),
+						position,
+						radius,
+						0.1,
+						style.color.into(),
+					);
+					created_meshes = true;
+				}
+				DrawOperation::Arc(kind, position, radius, angle1, angle2, style) => {
+					let mut points = vec![];
+					let segments = radius.ceil() as usize;
+					for i in 0..=segments {
+						let angle = angle1 + (angle2 - angle1) * (i as f32 / segments as f32);
+						points.push(Point::new(
+							position.x + radius * angle.cos(),
+							position.y + radius * angle.sin(),
+						));
+					}
+					match kind {
+						ArcKind::Pie => {
+							points.push(position);
+							points.push(Point::new(
+								position.x + radius * angle1.cos(),
+								position.y + radius * angle1.sin(),
+							));
+						}
+						ArcKind::Open => {}
+						ArcKind::Closed => {
+							points.push(Point::new(
+								position.x + radius * angle1.cos(),
+								position.y + radius * angle1.sin(),
+							));
+						}
+					}
+					match style.mode {
+						DrawMode::Fill => {
+							mesh_builder.polygon(style.mode.into(), &points, style.color.into())?;
+						}
+						DrawMode::Stroke(width) => {
+							mesh_builder.line(&points, width, style.color.into())?;
+						}
+					}
+					created_meshes = true;
+				}
+				DrawOperation::Polyline(_, _) => {}
+				DrawOperation::Polygon(_, _) => {}
 			}
 		}
 		if !created_meshes {
