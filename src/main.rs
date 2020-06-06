@@ -85,7 +85,7 @@ impl ggez::event::EventHandler for MainState {
 
 	fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
 		graphics::clear(ctx, graphics::BLACK);
-		self.backend.draw_debug(ctx)?;
+		self.backend.draw(ctx)?;
 		graphics::present(ctx)?;
 		Ok(())
 	}

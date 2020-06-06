@@ -1,11 +1,11 @@
+pub mod canvas;
 pub mod control;
-pub mod display;
 pub mod mouse_button;
 pub mod point;
 pub mod rectangle;
 
+use canvas::{Canvas, Color, DrawMode, Style};
 use control::{behavior::ControlBehavior, Control, ControlSettings};
-use display::{Color, Display, DrawMode, Style};
 use enum_map::{enum_map, EnumMap};
 use mouse_button::MouseButton;
 use std::collections::HashMap;
@@ -134,7 +134,7 @@ impl Gui {
 		}
 	}
 
-	pub fn draw_debug(&self, display: &mut impl Display) {
+	pub fn draw_debug(&self, canvas: &mut Canvas) {
 		for (id, control) in &self.controls.controls {
 			let color = if self.held_control[MouseButton::Left] == Some(*id) {
 				Color::new(1.0, 1.0, 0.0, 1.0)
@@ -143,7 +143,7 @@ impl Gui {
 			} else {
 				Color::new(1.0, 1.0, 1.0, 1.0)
 			};
-			display.draw_rectangle(
+			canvas.draw_rectangle(
 				control.rectangle,
 				Style {
 					mode: DrawMode::Stroke(2.0),
