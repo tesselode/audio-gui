@@ -95,7 +95,7 @@ impl GgezBackend {
 
 	pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
 		let mut canvas = Canvas::new();
-		self.gui.draw_debug(&mut canvas);
+		self.gui.draw(&mut canvas);
 		if !canvas.operations.len() == 0 {
 			return Ok(());
 		}

@@ -4,7 +4,8 @@ mod gui;
 use backend::ggez::GgezBackend;
 use ggez::graphics;
 use gui::{
-	control::{behavior::ControlBehavior, ControlSettings},
+	canvas::{Canvas, Color, DrawMode, Style},
+	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
 	ControlId, Controls,
 };
@@ -30,6 +31,16 @@ impl ControlBehavior for TestBehavior {
 				println!("Click: {:?}, {}, {}", mouse_button, x, y);
 			}
 		}
+	}
+
+	fn draw(&self, control: &Control, canvas: &mut Canvas) {
+		canvas.draw_rectangle(
+			control.rectangle,
+			Style {
+				mode: DrawMode::Fill,
+				color: Color::new(1.0, 1.0, 1.0, 0.5),
+			},
+		)
 	}
 }
 

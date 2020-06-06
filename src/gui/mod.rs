@@ -134,6 +134,14 @@ impl Gui {
 		}
 	}
 
+	pub fn draw(&self, canvas: &mut Canvas) {
+		for (id, control) in &self.controls.controls {
+			for behavior in &self.behaviors[id] {
+				behavior.draw(control, canvas);
+			}
+		}
+	}
+
 	pub fn draw_debug(&self, canvas: &mut Canvas) {
 		for (id, control) in &self.controls.controls {
 			let color = if self.held_control[MouseButton::Left] == Some(*id) {
