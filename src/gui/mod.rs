@@ -20,7 +20,8 @@ pub enum Event {
 	Release(ControlId, MouseButton, f32, f32),
 	Click(ControlId, MouseButton, f32, f32),
 	Drag(ControlId, MouseButton, f32, f32, f32, f32),
-	ChangeParameter(i32, f32),
+	SetParameter(i32, f32),
+	ResetParameter(i32),
 }
 
 pub struct Controls {
@@ -52,28 +53,17 @@ impl Controls {
 	}
 }
 
-pub struct Parameters {
-	parameters: HashMap<i32, f32>,
-	changes: Vec<(i32, f32)>,
+pub struct EventQueue {
+	events: Vec<Event>,
 }
 
-impl Parameters {
+impl EventQueue {
 	fn new() -> Self {
-		Self {
-			parameters: HashMap::new(),
-			changes: vec![],
-		}
+		Self { events: vec![] }
 	}
 
-	pub fn get(&self, index: i32) -> f32 {
-		match self.parameters.get(&index) {
-			Some(value) => *value,
-			None => 0.0,
-		}
-	}
-
-	pub fn set(&mut self, index: i32, value: f32) {
-		self.changes.push((index, value));
+	pub fn push(&mut self, event: Event) {
+		self.events.push(event);
 	}
 }
 
@@ -82,7 +72,7 @@ pub struct Gui {
 	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior>>>,
 	hovered_control: Option<ControlId>,
 	held_control: EnumMap<MouseButton, Option<ControlId>>,
-	parameters: Parameters,
+	event_queue: EventQueue,
 }
 
 impl Gui {
@@ -96,7 +86,7 @@ impl Gui {
 				MouseButton::Middle => None,
 				MouseButton::Right => None,
 			},
-			parameters: Parameters::new(),
+			event_queue: EventQueue::new(),
 		}
 	}
 
@@ -106,20 +96,24 @@ impl Gui {
 		id
 	}
 
-	fn emit(&mut self, event: Event, control_id: Option<ControlId>) {
+	pub fn emit(&mut self, event: Event, control_id: Option<ControlId>) {
 		if let Some(id) = control_id {
 			if let Some(behaviors) = self.behaviors.get_mut(&id) {
 				for behavior in behaviors {
-					behavior.on(event, &mut self.controls, &mut self.parameters);
+					behavior.on(event, &mut self.controls, &mut self.event_queue);
 				}
 			}
 		} else {
 			for (_, behaviors) in &mut self.behaviors {
 				for behavior in behaviors {
-					behavior.on(event, &mut self.controls, &mut self.parameters);
+					behavior.on(event, &mut self.controls, &mut self.event_queue);
 				}
 			}
 		}
+	}
+
+	pub fn drain_events(&mut self) -> Vec<Event> {
+		self.event_queue.events.drain(..).collect()
 	}
 
 	/* it makes the most sense to store the control hovered/held state
@@ -214,23 +208,10 @@ impl Gui {
 		}
 	}
 
-	pub fn on_change_parameter(&mut self, index: i32, value: f32) {
-		self.parameters.parameters.insert(index, value);
-		self.emit(Event::ChangeParameter(index, value), None);
-	}
-
-	pub fn get_parameter_changes(&mut self) -> Vec<(i32, f32)> {
-		let mut changes = vec![];
-		for change in self.parameters.changes.drain(..) {
-			changes.push(change);
-		}
-		changes
-	}
-
 	pub fn draw(&self, canvas: &mut Canvas) {
 		for (id, control) in &self.controls.controls {
 			for behavior in &self.behaviors[id] {
-				behavior.draw(control, &self.parameters, canvas);
+				behavior.draw(control, canvas);
 			}
 		}
 	}

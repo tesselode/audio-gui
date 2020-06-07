@@ -7,33 +7,46 @@ use gui::{
 	canvas::{Alignment, ArcKind, Canvas, Color, DrawMode, Style, TextStyle},
 	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
-	Controls, Parameters,
+	Controls, Event, EventQueue,
 };
 use std::{collections::HashMap, f32::consts::PI};
 
 struct Knob {
 	parameter_index: i32,
+	parameter_value: f32,
+}
+
+impl Knob {
+	fn new(parameter_index: i32) -> Self {
+		Self {
+			parameter_index,
+			parameter_value: 0.0,
+		}
+	}
 }
 
 impl ControlBehavior for Knob {
-	fn on(&mut self, event: gui::Event, _controls: &mut Controls, parameters: &mut Parameters) {
+	fn on(&mut self, event: gui::Event, _controls: &mut Controls, event_queue: &mut EventQueue) {
 		match event {
-			gui::Event::Drag(id, button, x, y, dx, dy) => {
-				parameters.set(
+			Event::Drag(id, button, x, y, dx, dy) => {
+				event_queue.push(Event::SetParameter(
 					self.parameter_index,
-					(parameters.get(self.parameter_index) - dy / 100.0)
-						.max(0.0)
-						.min(1.0),
-				);
+					(self.parameter_value - dy / 100.0).max(0.0).min(1.0),
+				));
+			}
+			Event::SetParameter(index, value) => {
+				if index == self.parameter_index {
+					self.parameter_value = value;
+				}
 			}
 			_ => {}
 		}
 	}
 
-	fn draw(&self, control: &Control, parameters: &Parameters, canvas: &mut Canvas) {
+	fn draw(&self, control: &Control, canvas: &mut Canvas) {
 		let center = control.rectangle.get_center();
 		let radius = control.rectangle.height / 2.0;
-		let nub_angle = 0.75 * PI + parameters.get(self.parameter_index) * 1.5 * PI;
+		let nub_angle = 0.75 * PI + self.parameter_value * 1.5 * PI;
 		let style = Style {
 			mode: DrawMode::Stroke(4.0),
 			color: Color::new(1.0, 1.0, 1.0, 1.0),
@@ -77,9 +90,9 @@ impl MainState {
 		backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
 			height: 0,
-			behaviors: vec![Box::new(Knob { parameter_index: 0 })],
+			behaviors: vec![Box::new(Knob::new(0))],
 		});
-		backend.gui.on_change_parameter(0, 0.5);
+		backend.gui.emit(Event::SetParameter(0, 0.5), None);
 		let mut parameters = HashMap::new();
 		parameters.insert(0, 0.5);
 		Ok(Self {
@@ -124,9 +137,14 @@ impl ggez::event::EventHandler for MainState {
 		let text = graphics::Text::new(self.parameters.get(&0).unwrap().to_string());
 		graphics::draw(ctx, &text, graphics::DrawParam::new())?;
 		graphics::present(ctx)?;
-		for (index, value) in self.backend.gui.get_parameter_changes() {
-			self.parameters.insert(index, value);
-			self.backend.gui.on_change_parameter(index, value);
+		for event in self.backend.gui.drain_events() {
+			match event {
+				Event::SetParameter(index, value) => {
+					self.parameters.insert(index, value);
+					self.backend.gui.emit(event, None);
+				}
+				_ => {}
+			}
 		}
 		Ok(())
 	}
