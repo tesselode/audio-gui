@@ -1,10 +1,10 @@
 mod backend;
 mod gui;
 
-use backend::ggez::GgezBackend;
+use backend::ggez::{GgezBackend, GgezBackendOptions};
 use ggez::graphics;
 use gui::{
-	canvas::{ArcKind, Canvas, Color, DrawMode, Style},
+	canvas::{Alignment, ArcKind, Canvas, Color, DrawMode, Style, TextStyle},
 	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
 	ControlId, Controls, GlobalEvent, Parameters,
@@ -53,6 +53,17 @@ impl ControlBehavior for Knob {
 			nub_angle + 0.25,
 			style,
 		);
+		canvas.draw_text(
+			"Label".to_string(),
+			center.shifted(0.0, radius + 10.0),
+			TextStyle {
+				font_id: 0,
+				size: 20.0,
+				horizontal_alignment: Alignment::Middle,
+				vertical_alignment: Alignment::Start,
+				color: Color::new(1.0, 1.0, 1.0, 1.0),
+			},
+		)
 	}
 }
 
@@ -62,8 +73,13 @@ struct MainState {
 }
 
 impl MainState {
-	pub fn new() -> Self {
-		let mut backend = GgezBackend::new();
+	pub fn new(ctx: &mut ggez::Context) -> ggez::GameResult<Self> {
+		let mut backend = GgezBackend::new(
+			ctx,
+			GgezBackendOptions {
+				fonts: vec![include_bytes!("resources/Roboto-Regular.ttf").to_vec()],
+			},
+		)?;
 		backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
 			height: 0,
@@ -72,10 +88,10 @@ impl MainState {
 		backend.gui.on_change_parameter(0, 0.5);
 		let mut parameters = HashMap::new();
 		parameters.insert(0, 0.5);
-		Self {
+		Ok(Self {
 			backend,
 			parameters,
-		}
+		})
 	}
 }
 
@@ -124,6 +140,7 @@ impl ggez::event::EventHandler for MainState {
 
 fn main() -> ggez::GameResult {
 	let (mut ctx, mut event_loop) = ggez::ContextBuilder::new("audio-gui", "tesselode").build()?;
-	ggez::event::run(&mut ctx, &mut event_loop, &mut MainState::new())?;
+	let mut main_state = MainState::new(&mut ctx)?;
+	ggez::event::run(&mut ctx, &mut event_loop, &mut main_state)?;
 	Ok(())
 }

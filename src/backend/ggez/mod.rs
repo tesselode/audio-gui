@@ -5,7 +5,10 @@ use crate::gui::{
 	rectangle::Rectangle,
 	Gui,
 };
-use ggez::{graphics::MeshBuilder, Context, GameResult};
+use ggez::{
+	graphics::{Font, MeshBuilder, Scale, Text},
+	Context, GameResult,
+};
 
 impl From<DrawMode> for ggez::graphics::DrawMode {
 	fn from(mode: DrawMode) -> Self {
@@ -37,13 +40,25 @@ impl From<Point> for ggez::mint::Point2<f32> {
 	}
 }
 
+pub struct GgezBackendOptions {
+	pub fonts: Vec<Vec<u8>>,
+}
+
 pub struct GgezBackend {
 	pub gui: Gui,
+	fonts: Vec<Font>,
 }
 
 impl GgezBackend {
-	pub fn new() -> Self {
-		Self { gui: Gui::new() }
+	pub fn new(ctx: &mut Context, mut options: GgezBackendOptions) -> GameResult<Self> {
+		let mut fonts = vec![];
+		for bytes in options.fonts.drain(..) {
+			fonts.push(Font::new_glyph_font_bytes(ctx, &bytes)?);
+		}
+		Ok(Self {
+			gui: Gui::new(),
+			fonts,
+		})
 	}
 
 	pub fn mouse_motion_event(
@@ -153,8 +168,29 @@ impl GgezBackend {
 					}
 					created_meshes = true;
 				}
-				DrawOperation::Polyline(_, _) => {}
-				DrawOperation::Polygon(_, _) => {}
+				DrawOperation::Polyline(_, _) => todo!(),
+				DrawOperation::Polygon(_, _) => todo!(),
+				DrawOperation::Text(text, mut position, style) => {
+					if let Some(font) = self.fonts.get(style.font_id) {
+						let mut t = Text::new(text);
+						t.set_font(
+							*font,
+							Scale {
+								x: style.size,
+								y: style.size,
+							},
+						);
+						position.x -= t.width(ctx) as f32 * style.horizontal_alignment.as_f32();
+						position.y -= t.height(ctx) as f32 * style.vertical_alignment.as_f32();
+						ggez::graphics::draw(
+							ctx,
+							&t,
+							ggez::graphics::DrawParam::new()
+								.dest(position)
+								.color(style.color.into()),
+						)?;
+					}
+				}
 			}
 		}
 		if !created_meshes {

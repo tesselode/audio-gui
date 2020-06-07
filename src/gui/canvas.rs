@@ -37,12 +37,39 @@ pub enum ArcKind {
 	Closed,
 }
 
+pub enum Alignment {
+	Start,
+	Middle,
+	End,
+	Custom(f32),
+}
+
+impl Alignment {
+	pub fn as_f32(&self) -> f32 {
+		match self {
+			Alignment::Start => 0.0,
+			Alignment::Middle => 0.5,
+			Alignment::End => 1.0,
+			Alignment::Custom(align) => *align,
+		}
+	}
+}
+
+pub struct TextStyle {
+	pub font_id: usize,
+	pub size: f32,
+	pub horizontal_alignment: Alignment,
+	pub vertical_alignment: Alignment,
+	pub color: Color,
+}
+
 pub enum DrawOperation {
 	Rectangle(Rectangle, Style),
 	Circle(Point, f32, Style),
 	Arc(ArcKind, Point, f32, f32, f32, Style),
 	Polyline(Vec<Point>, Style),
 	Polygon(Vec<Point>, Style),
+	Text(String, Point, TextStyle),
 }
 
 pub struct Canvas {
@@ -84,5 +111,10 @@ impl Canvas {
 
 	pub fn draw_polygon(&mut self, points: Vec<Point>, style: Style) {
 		self.operations.push(DrawOperation::Polygon(points, style));
+	}
+
+	pub fn draw_text(&mut self, text: String, position: Point, style: TextStyle) {
+		self.operations
+			.push(DrawOperation::Text(text, position, style));
 	}
 }
