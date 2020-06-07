@@ -7,61 +7,57 @@ use gui::{
 	canvas::{ArcKind, Canvas, Color, DrawMode, Style},
 	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
-	ControlId, Controls,
+	ControlId, Controls, GlobalEvent, Parameters,
 };
+use std::{collections::HashMap, f32::consts::PI};
 
-struct TestBehavior;
+struct Knob {
+	parameter_index: i32,
+}
 
-impl ControlBehavior for TestBehavior {
-	fn on(&mut self, event: gui::Event, _controls: &mut Controls, _id: &ControlId) {
+impl ControlBehavior for Knob {
+	fn on(
+		&mut self,
+		event: gui::Event,
+		_controls: &mut Controls,
+		_id: &ControlId,
+		parameters: &mut Parameters,
+	) {
 		match event {
-			gui::Event::Hover(x, y) => {
-				println!("Hover: {}, {}", x, y);
+			gui::Event::Drag(button, x, y, dx, dy) => {
+				parameters.set(
+					self.parameter_index,
+					(parameters.get(self.parameter_index) - dy / 100.0)
+						.max(0.0)
+						.min(1.0),
+				);
 			}
-			gui::Event::Unhover => {
-				println!("Unhover");
-			}
-			gui::Event::Press(mouse_button, x, y) => {
-				println!("Press: {:?}, {}, {}", mouse_button, x, y);
-			}
-			gui::Event::Release(mouse_button, x, y) => {
-				println!("Release: {:?}, {}, {}", mouse_button, x, y);
-			}
-			gui::Event::Click(mouse_button, x, y) => {
-				println!("Click: {:?}, {}, {}", mouse_button, x, y);
-			}
-			gui::Event::Drag(mouse_button, x, y, dx, dy) => {
-				println!("Drag: {:?}, {}, {}, {}, {}", mouse_button, x, y, dx, dy);
-			}
+			_ => {}
 		}
 	}
 
-	fn draw(&self, control: &Control, canvas: &mut Canvas) {
+	fn draw(&self, control: &Control, parameters: &Parameters, canvas: &mut Canvas) {
+		let center = control.rectangle.get_center();
+		let radius = control.rectangle.height / 2.0;
+		let nub_angle = 0.75 * PI + parameters.get(self.parameter_index) * 1.5 * PI;
 		let style = Style {
 			mode: DrawMode::Stroke(4.0),
-			color: if control.is_hovered {
-				Color::new(1.0, 1.0, 0.0, 0.5)
-			} else {
-				Color::new(1.0, 1.0, 1.0, 0.5)
-			},
+			color: Color::new(1.0, 1.0, 1.0, 1.0),
 		};
-		canvas.draw_circle(
-			control.rectangle.get_center(),
-			control.rectangle.height / 2.0,
-			style,
-		);
+		canvas.draw_circle(center, radius, style);
 		canvas.draw_arc(
 			ArcKind::Open,
-			control.rectangle.get_center(),
-			control.rectangle.height / 2.5,
-			0.1,
-			0.5,
+			center,
+			radius * 0.75,
+			nub_angle - 0.25,
+			nub_angle + 0.25,
 			style,
 		);
 	}
 }
 
 struct MainState {
+	parameters: HashMap<i32, f32>,
 	backend: GgezBackend,
 }
 
@@ -71,14 +67,15 @@ impl MainState {
 		backend.gui.add_control(ControlSettings {
 			rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
 			height: 0,
-			behaviors: vec![Box::new(TestBehavior {})],
+			behaviors: vec![Box::new(Knob { parameter_index: 0 })],
 		});
-		backend.gui.add_control(ControlSettings {
-			rectangle: Rectangle::new(100.0, 100.0, 100.0, 100.0),
-			height: 1,
-			behaviors: vec![Box::new(TestBehavior {})],
-		});
-		Self { backend }
+		backend.gui.on_change_parameter(0, 0.5);
+		let mut parameters = HashMap::new();
+		parameters.insert(0, 0.5);
+		Self {
+			backend,
+			parameters,
+		}
 	}
 }
 
@@ -114,7 +111,13 @@ impl ggez::event::EventHandler for MainState {
 	fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
 		graphics::clear(ctx, graphics::BLACK);
 		self.backend.draw(ctx)?;
+		let text = graphics::Text::new(self.parameters.get(&0).unwrap().to_string());
+		graphics::draw(ctx, &text, graphics::DrawParam::new())?;
 		graphics::present(ctx)?;
+		for (index, value) in self.backend.gui.get_parameter_changes() {
+			self.parameters.insert(index, value);
+			self.backend.gui.on_change_parameter(index, value);
+		}
 		Ok(())
 	}
 }

@@ -22,6 +22,11 @@ pub enum Event {
 	Drag(MouseButton, f32, f32, f32, f32),
 }
 
+#[derive(Copy, Clone)]
+pub enum GlobalEvent {
+	ChangeParameter(i32, f32),
+}
+
 pub struct Controls {
 	controls: HashMap<ControlId, Control>,
 	next_control_id: ControlId,
@@ -51,11 +56,37 @@ impl Controls {
 	}
 }
 
+pub struct Parameters {
+	parameters: HashMap<i32, f32>,
+	changes: Vec<(i32, f32)>,
+}
+
+impl Parameters {
+	fn new() -> Self {
+		Self {
+			parameters: HashMap::new(),
+			changes: vec![],
+		}
+	}
+
+	pub fn get(&self, index: i32) -> f32 {
+		match self.parameters.get(&index) {
+			Some(value) => *value,
+			None => 0.0,
+		}
+	}
+
+	pub fn set(&mut self, index: i32, value: f32) {
+		self.changes.push((index, value));
+	}
+}
+
 pub struct Gui {
 	pub controls: Controls,
 	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior>>>,
 	hovered_control: Option<ControlId>,
 	held_control: EnumMap<MouseButton, Option<ControlId>>,
+	parameters: Parameters,
 }
 
 impl Gui {
@@ -69,6 +100,7 @@ impl Gui {
 				MouseButton::Middle => None,
 				MouseButton::Right => None,
 			},
+			parameters: Parameters::new(),
 		}
 	}
 
@@ -81,7 +113,15 @@ impl Gui {
 	fn emit(&mut self, event: Event, id: ControlId) {
 		if let Some(behaviors) = self.behaviors.get_mut(&id) {
 			for behavior in behaviors {
-				behavior.on(event, &mut self.controls, &id);
+				behavior.on(event, &mut self.controls, &id, &mut self.parameters);
+			}
+		}
+	}
+
+	fn emit_global(&mut self, event: GlobalEvent) {
+		for (_, behaviors) in &mut self.behaviors {
+			for behavior in behaviors {
+				behavior.on_global(event, &mut self.controls, &mut self.parameters)
 			}
 		}
 	}
@@ -169,10 +209,23 @@ impl Gui {
 		}
 	}
 
+	pub fn on_change_parameter(&mut self, index: i32, value: f32) {
+		self.parameters.parameters.insert(index, value);
+		self.emit_global(GlobalEvent::ChangeParameter(index, value));
+	}
+
+	pub fn get_parameter_changes(&mut self) -> Vec<(i32, f32)> {
+		let mut changes = vec![];
+		for change in self.parameters.changes.drain(..) {
+			changes.push(change);
+		}
+		changes
+	}
+
 	pub fn draw(&self, canvas: &mut Canvas) {
 		for (id, control) in &self.controls.controls {
 			for behavior in &self.behaviors[id] {
-				behavior.draw(control, canvas);
+				behavior.draw(control, &self.parameters, canvas);
 			}
 		}
 	}
