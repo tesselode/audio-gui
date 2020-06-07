@@ -7,7 +7,7 @@ use gui::{
 	canvas::{Alignment, ArcKind, Canvas, Color, DrawMode, Style, TextStyle},
 	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
-	ControlId, Controls, GlobalEvent, Parameters,
+	Controls, Parameters,
 };
 use std::{collections::HashMap, f32::consts::PI};
 
@@ -16,15 +16,9 @@ struct Knob {
 }
 
 impl ControlBehavior for Knob {
-	fn on(
-		&mut self,
-		event: gui::Event,
-		_controls: &mut Controls,
-		_id: &ControlId,
-		parameters: &mut Parameters,
-	) {
+	fn on(&mut self, event: gui::Event, _controls: &mut Controls, parameters: &mut Parameters) {
 		match event {
-			gui::Event::Drag(button, x, y, dx, dy) => {
+			gui::Event::Drag(id, button, x, y, dx, dy) => {
 				parameters.set(
 					self.parameter_index,
 					(parameters.get(self.parameter_index) - dy / 100.0)

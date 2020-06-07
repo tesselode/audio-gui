@@ -14,16 +14,12 @@ pub type ControlId = usize;
 
 #[derive(Copy, Clone)]
 pub enum Event {
-	Hover(f32, f32),
-	Unhover,
-	Press(MouseButton, f32, f32),
-	Release(MouseButton, f32, f32),
-	Click(MouseButton, f32, f32),
-	Drag(MouseButton, f32, f32, f32, f32),
-}
-
-#[derive(Copy, Clone)]
-pub enum GlobalEvent {
+	Hover(ControlId, f32, f32),
+	Unhover(ControlId),
+	Press(ControlId, MouseButton, f32, f32),
+	Release(ControlId, MouseButton, f32, f32),
+	Click(ControlId, MouseButton, f32, f32),
+	Drag(ControlId, MouseButton, f32, f32, f32, f32),
 	ChangeParameter(i32, f32),
 }
 
@@ -110,18 +106,18 @@ impl Gui {
 		id
 	}
 
-	fn emit(&mut self, event: Event, id: ControlId) {
-		if let Some(behaviors) = self.behaviors.get_mut(&id) {
-			for behavior in behaviors {
-				behavior.on(event, &mut self.controls, &id, &mut self.parameters);
+	fn emit(&mut self, event: Event, control_id: Option<ControlId>) {
+		if let Some(id) = control_id {
+			if let Some(behaviors) = self.behaviors.get_mut(&id) {
+				for behavior in behaviors {
+					behavior.on(event, &mut self.controls, &mut self.parameters);
+				}
 			}
-		}
-	}
-
-	fn emit_global(&mut self, event: GlobalEvent) {
-		for (_, behaviors) in &mut self.behaviors {
-			for behavior in behaviors {
-				behavior.on_global(event, &mut self.controls, &mut self.parameters)
+		} else {
+			for (_, behaviors) in &mut self.behaviors {
+				for behavior in behaviors {
+					behavior.on(event, &mut self.controls, &mut self.parameters);
+				}
 			}
 		}
 	}
@@ -158,10 +154,10 @@ impl Gui {
 				let control = self.controls.get(&id).unwrap();
 				let relative_x = x - control.rectangle.x;
 				let relative_y = y - control.rectangle.y;
-				self.emit(Event::Hover(relative_x, relative_y), id);
+				self.emit(Event::Hover(id, relative_x, relative_y), Some(id));
 			}
 			if let Some(id) = previous_hovered_control {
-				self.emit(Event::Unhover, id);
+				self.emit(Event::Unhover(id), Some(id));
 			}
 		}
 		// emit drag events
@@ -172,8 +168,8 @@ impl Gui {
 				let relative_x = x - control.rectangle.x;
 				let relative_y = y - control.rectangle.y;
 				self.emit(
-					Event::Drag(mouse_button, relative_x, relative_y, dx, dy),
-					*id,
+					Event::Drag(*id, mouse_button, relative_x, relative_y, dx, dy),
+					Some(*id),
 				);
 			}
 		}
@@ -188,7 +184,10 @@ impl Gui {
 			let control = self.controls.get(&id).unwrap();
 			let relative_x = x - control.rectangle.x;
 			let relative_y = y - control.rectangle.y;
-			self.emit(Event::Press(mouse_button, relative_x, relative_y), id);
+			self.emit(
+				Event::Press(id, mouse_button, relative_x, relative_y),
+				Some(id),
+			);
 		}
 	}
 
@@ -202,16 +201,22 @@ impl Gui {
 			let control = self.controls.get(&id).unwrap();
 			let relative_x = x - control.rectangle.x;
 			let relative_y = y - control.rectangle.y;
-			self.emit(Event::Release(mouse_button, relative_x, relative_y), id);
+			self.emit(
+				Event::Release(id, mouse_button, relative_x, relative_y),
+				Some(id),
+			);
 			if self.hovered_control == Some(id) {
-				self.emit(Event::Click(mouse_button, relative_x, relative_y), id);
+				self.emit(
+					Event::Click(id, mouse_button, relative_x, relative_y),
+					Some(id),
+				);
 			}
 		}
 	}
 
 	pub fn on_change_parameter(&mut self, index: i32, value: f32) {
 		self.parameters.parameters.insert(index, value);
-		self.emit_global(GlobalEvent::ChangeParameter(index, value));
+		self.emit(Event::ChangeParameter(index, value), None);
 	}
 
 	pub fn get_parameter_changes(&mut self) -> Vec<(i32, f32)> {
