@@ -1,5 +1,5 @@
 use super::Control;
-use crate::gui::{canvas::Canvas, Controls, Event, EventQueue};
+use crate::{canvas::Canvas, Controls, Event, EventQueue};
 
 pub trait ControlBehavior<CustomEvent> {
 	fn on(

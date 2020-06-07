@@ -1,14 +1,11 @@
-mod backend;
-mod gui;
-
-use backend::ggez::{GgezBackend, GgezBackendOptions};
 use ggez::graphics;
-use gui::{
+use knobby::{
 	canvas::{Alignment, ArcKind, Canvas, Color, DrawMode, Style, TextStyle},
 	control::{behavior::ControlBehavior, Control, ControlSettings},
 	rectangle::Rectangle,
 	Controls, Event, EventQueue,
 };
+use knobby_ggez_backend::{GgezBackend, GgezBackendOptions};
 use std::{collections::HashMap, f32::consts::PI};
 
 #[derive(Copy, Clone)]
@@ -33,7 +30,7 @@ impl Knob {
 impl ControlBehavior<CustomEvent> for Knob {
 	fn on(
 		&mut self,
-		event: gui::Event<CustomEvent>,
+		event: knobby::Event<CustomEvent>,
 		_controls: &mut Controls,
 		event_queue: &mut EventQueue<CustomEvent>,
 	) {

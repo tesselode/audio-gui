@@ -93,14 +93,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
 
 [[package]]
-name = "audio-gui"
-version = "0.1.0"
-dependencies = [
- "enum-map",
- "ggez",
-]
-
-[[package]]
 name = "autocfg"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -939,6 +931,30 @@ name = "khronos_api"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
+
+[[package]]
+name = "knobby"
+version = "0.1.0"
+dependencies = [
+ "enum-map",
+]
+
+[[package]]
+name = "knobby_ggez_backend"
+version = "0.1.0"
+dependencies = [
+ "ggez",
+ "knobby",
+]
+
+[[package]]
+name = "knobby_test"
+version = "0.1.0"
+dependencies = [
+ "ggez",
+ "knobby",
+ "knobby_ggez_backend",
+]
 
 [[package]]
 name = "lazy_static"

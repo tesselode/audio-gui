@@ -1,42 +1,34 @@
-use crate::gui::{
+use ggez::{
+	graphics::{Font, MeshBuilder, Scale, Text},
+	Context, GameResult,
+};
+use knobby::{
 	canvas::{ArcKind, Canvas, Color, DrawMode, DrawOperation, Style, TextStyle},
 	mouse_button::MouseButton,
 	point::Point,
 	rectangle::Rectangle,
 	Gui,
 };
-use ggez::{
-	graphics::{Font, MeshBuilder, Scale, Text},
-	Context, GameResult,
-};
 
-impl From<DrawMode> for ggez::graphics::DrawMode {
-	fn from(mode: DrawMode) -> Self {
-		match mode {
-			DrawMode::Fill => ggez::graphics::DrawMode::fill(),
-			DrawMode::Stroke(width) => ggez::graphics::DrawMode::stroke(width),
-		}
+fn convert_draw_mode(mode: DrawMode) -> ggez::graphics::DrawMode {
+	match mode {
+		DrawMode::Fill => ggez::graphics::DrawMode::fill(),
+		DrawMode::Stroke(width) => ggez::graphics::DrawMode::stroke(width),
 	}
 }
 
-impl From<Color> for ggez::graphics::Color {
-	fn from(color: Color) -> Self {
-		ggez::graphics::Color::new(color.red, color.green, color.blue, color.alpha)
-	}
+fn convert_color(color: Color) -> ggez::graphics::Color {
+	ggez::graphics::Color::new(color.red, color.green, color.blue, color.alpha)
 }
 
-impl From<Rectangle> for ggez::graphics::Rect {
-	fn from(rectangle: Rectangle) -> Self {
-		ggez::graphics::Rect::new(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
-	}
+fn convert_rectangle(rectangle: Rectangle) -> ggez::graphics::Rect {
+	ggez::graphics::Rect::new(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
 }
 
-impl From<Point> for ggez::mint::Point2<f32> {
-	fn from(point: Point) -> Self {
-		Self {
-			x: point.x,
-			y: point.y,
-		}
+fn convert_point(point: Point) -> ggez::mint::Point2<f32> {
+	ggez::mint::Point2 {
+		x: point.x,
+		y: point.y,
 	}
 }
 
@@ -117,7 +109,11 @@ where
 		rectangle: Rectangle,
 		style: Style,
 	) {
-		mesh_builder.rectangle(style.mode.into(), rectangle.into(), style.color.into());
+		mesh_builder.rectangle(
+			convert_draw_mode(style.mode),
+			convert_rectangle(rectangle),
+			convert_color(style.color),
+		);
 	}
 
 	fn draw_circle(
@@ -127,7 +123,13 @@ where
 		radius: f32,
 		style: Style,
 	) {
-		mesh_builder.circle(style.mode.into(), position, radius, 0.1, style.color.into());
+		mesh_builder.circle(
+			convert_draw_mode(style.mode),
+			convert_point(position),
+			radius,
+			0.1,
+			convert_color(style.color),
+		);
 	}
 
 	fn draw_arc(
@@ -165,12 +167,18 @@ where
 				));
 			}
 		}
+		let mint_points: Vec<ggez::mint::Point2<f32>> =
+			points.iter().map(|point| convert_point(*point)).collect();
 		match style.mode {
 			DrawMode::Fill => {
-				mesh_builder.polygon(style.mode.into(), &points, style.color.into())?;
+				mesh_builder.polygon(
+					convert_draw_mode(style.mode),
+					&mint_points,
+					convert_color(style.color),
+				)?;
 			}
 			DrawMode::Stroke(width) => {
-				mesh_builder.line(&points, width, style.color.into())?;
+				mesh_builder.line(&mint_points, width, convert_color(style.color))?;
 			}
 		}
 		Ok(())
@@ -198,8 +206,8 @@ where
 				ctx,
 				&t,
 				ggez::graphics::DrawParam::new()
-					.dest(position)
-					.color(style.color.into()),
+					.dest(convert_point(position))
+					.color(convert_color(style.color)),
 			)?;
 		}
 		Ok(())
