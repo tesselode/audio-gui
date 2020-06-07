@@ -11,6 +11,11 @@ use gui::{
 };
 use std::{collections::HashMap, f32::consts::PI};
 
+#[derive(Copy, Clone)]
+enum CustomEvent {
+	Test,
+}
+
 struct Knob {
 	parameter_index: i32,
 	parameter_value: f32,
@@ -25,8 +30,13 @@ impl Knob {
 	}
 }
 
-impl ControlBehavior for Knob {
-	fn on(&mut self, event: gui::Event, _controls: &mut Controls, event_queue: &mut EventQueue) {
+impl ControlBehavior<CustomEvent> for Knob {
+	fn on(
+		&mut self,
+		event: gui::Event<CustomEvent>,
+		_controls: &mut Controls,
+		event_queue: &mut EventQueue<CustomEvent>,
+	) {
 		match event {
 			Event::Drag(id, button, x, y, dx, dy) => {
 				event_queue.push(Event::SetParameter(
@@ -39,6 +49,11 @@ impl ControlBehavior for Knob {
 					self.parameter_value = value;
 				}
 			}
+			Event::Custom(custom_event) => match custom_event {
+				CustomEvent::Test => {
+					println!("hi!");
+				}
+			},
 			_ => {}
 		}
 	}
@@ -76,7 +91,7 @@ impl ControlBehavior for Knob {
 
 struct MainState {
 	parameters: HashMap<i32, f32>,
-	backend: GgezBackend,
+	backend: GgezBackend<CustomEvent>,
 }
 
 impl MainState {
@@ -129,6 +144,23 @@ impl ggez::event::EventHandler for MainState {
 		y: f32,
 	) {
 		self.backend.mouse_button_up_event(ctx, button, x, y);
+	}
+
+	fn key_down_event(
+		&mut self,
+		ctx: &mut ggez::Context,
+		keycode: ggez::event::KeyCode,
+		_keymods: ggez::event::KeyMods,
+		_repeat: bool,
+	) {
+		match keycode {
+			ggez::event::KeyCode::Space => {
+				self.backend
+					.gui
+					.emit(Event::Custom(CustomEvent::Test), None);
+			}
+			_ => {}
+		}
 	}
 
 	fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {

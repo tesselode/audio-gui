@@ -13,7 +13,7 @@ use std::collections::HashMap;
 pub type ControlId = usize;
 
 #[derive(Copy, Clone)]
-pub enum Event {
+pub enum Event<CustomEvent> {
 	Hover(ControlId, f32, f32),
 	Unhover(ControlId),
 	Press(ControlId, MouseButton, f32, f32),
@@ -22,6 +22,7 @@ pub enum Event {
 	Drag(ControlId, MouseButton, f32, f32, f32, f32),
 	SetParameter(i32, f32),
 	ResetParameter(i32),
+	Custom(CustomEvent),
 }
 
 pub struct Controls {
@@ -37,7 +38,7 @@ impl Controls {
 		}
 	}
 
-	fn add(&mut self, settings: &ControlSettings) -> ControlId {
+	fn add<CustomEvent>(&mut self, settings: &ControlSettings<CustomEvent>) -> ControlId {
 		let id = self.next_control_id;
 		self.next_control_id += 1;
 		self.controls.insert(id, Control::new(settings));
@@ -53,29 +54,32 @@ impl Controls {
 	}
 }
 
-pub struct EventQueue {
-	events: Vec<Event>,
+pub struct EventQueue<CustomEvent> {
+	events: Vec<Event<CustomEvent>>,
 }
 
-impl EventQueue {
+impl<CustomEvent> EventQueue<CustomEvent> {
 	fn new() -> Self {
 		Self { events: vec![] }
 	}
 
-	pub fn push(&mut self, event: Event) {
+	pub fn push(&mut self, event: Event<CustomEvent>) {
 		self.events.push(event);
 	}
 }
 
-pub struct Gui {
+pub struct Gui<CustomEvent> {
 	pub controls: Controls,
-	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior>>>,
+	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior<CustomEvent>>>>,
 	hovered_control: Option<ControlId>,
 	held_control: EnumMap<MouseButton, Option<ControlId>>,
-	event_queue: EventQueue,
+	event_queue: EventQueue<CustomEvent>,
 }
 
-impl Gui {
+impl<CustomEvent> Gui<CustomEvent>
+where
+	CustomEvent: Copy + Clone,
+{
 	pub fn new() -> Self {
 		Self {
 			controls: Controls::new(),
@@ -90,13 +94,13 @@ impl Gui {
 		}
 	}
 
-	pub fn add_control(&mut self, settings: ControlSettings) -> ControlId {
+	pub fn add_control(&mut self, settings: ControlSettings<CustomEvent>) -> ControlId {
 		let id = self.controls.add(&settings);
 		self.behaviors.insert(id, settings.behaviors);
 		id
 	}
 
-	pub fn emit(&mut self, event: Event, control_id: Option<ControlId>) {
+	pub fn emit(&mut self, event: Event<CustomEvent>, control_id: Option<ControlId>) {
 		if let Some(id) = control_id {
 			if let Some(behaviors) = self.behaviors.get_mut(&id) {
 				for behavior in behaviors {
@@ -112,7 +116,7 @@ impl Gui {
 		}
 	}
 
-	pub fn drain_events(&mut self) -> Vec<Event> {
+	pub fn drain_events(&mut self) -> Vec<Event<CustomEvent>> {
 		self.event_queue.events.drain(..).collect()
 	}
 

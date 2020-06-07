@@ -44,12 +44,15 @@ pub struct GgezBackendOptions {
 	pub fonts: Vec<Vec<u8>>,
 }
 
-pub struct GgezBackend {
-	pub gui: Gui,
+pub struct GgezBackend<CustomEvent> {
+	pub gui: Gui<CustomEvent>,
 	fonts: Vec<Font>,
 }
 
-impl GgezBackend {
+impl<CustomEvent> GgezBackend<CustomEvent>
+where
+	CustomEvent: Copy + Clone,
+{
 	pub fn new(ctx: &mut Context, mut options: GgezBackendOptions) -> GameResult<Self> {
 		let mut fonts = vec![];
 		for bytes in options.fonts.drain(..) {

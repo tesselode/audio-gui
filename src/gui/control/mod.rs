@@ -4,10 +4,10 @@ use super::{mouse_button::MouseButton, rectangle::Rectangle};
 use behavior::ControlBehavior;
 use enum_map::{enum_map, EnumMap};
 
-pub struct ControlSettings {
+pub struct ControlSettings<CustomEvent> {
 	pub rectangle: Rectangle,
 	pub height: i32,
-	pub behaviors: Vec<Box<dyn ControlBehavior>>,
+	pub behaviors: Vec<Box<dyn ControlBehavior<CustomEvent>>>,
 }
 
 pub struct Control {
@@ -18,7 +18,7 @@ pub struct Control {
 }
 
 impl Control {
-	pub fn new(settings: &ControlSettings) -> Self {
+	pub fn new<CustomEvent>(settings: &ControlSettings<CustomEvent>) -> Self {
 		Self {
 			rectangle: settings.rectangle,
 			height: settings.height,
