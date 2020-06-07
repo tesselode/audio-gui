@@ -3,7 +3,7 @@ use crate::{
 	canvas::{Canvas, Color, DrawMode, Style},
 	control::{Control, ControlSettings},
 	event::Event,
-	mouse_button::MouseButton,
+	input::MouseButton,
 };
 use enum_map::{enum_map, EnumMap};
 use std::collections::HashMap;

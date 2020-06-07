@@ -1,4 +1,4 @@
-use super::{geometry::Rectangle, mouse_button::MouseButton};
+use super::{geometry::Rectangle, input::MouseButton};
 use enum_map::{enum_map, EnumMap};
 
 pub struct ControlSettings {

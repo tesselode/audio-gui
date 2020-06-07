@@ -1,4 +1,4 @@
-use crate::{gui::ControlId, mouse_button::MouseButton};
+use crate::{gui::ControlId, input::MouseButton};
 
 #[derive(Copy, Clone)]
 pub enum Event<CustomEvent> {

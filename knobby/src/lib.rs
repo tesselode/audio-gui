@@ -4,4 +4,4 @@ pub mod control;
 pub mod event;
 pub mod geometry;
 pub mod gui;
-pub mod mouse_button;
+pub mod input;
