@@ -128,7 +128,6 @@ impl Gui {
 	}
 
 	pub fn on_mouse_down(&mut self, mouse_button: MouseButton, x: f32, y: f32) {
-		let previous_held_control = self.held_control;
 		if let Some(id) = self.hovered_control {
 			// update the held state
 			self.held_control[mouse_button] = Some(id);
@@ -137,9 +136,7 @@ impl Gui {
 			let control = self.controls.get(&id).unwrap();
 			let relative_x = x - control.rectangle.x;
 			let relative_y = y - control.rectangle.y;
-			if previous_held_control[mouse_button] == None {
-				self.emit(Event::Press(mouse_button, relative_x, relative_y), id);
-			}
+			self.emit(Event::Press(mouse_button, relative_x, relative_y), id);
 		}
 	}
 
