@@ -1,7 +1,8 @@
 use ggez::graphics;
 use knobby::{
+	behavior::Behavior,
 	canvas::{Alignment, ArcKind, Canvas, Color, DrawMode, Style, TextStyle},
-	control::{behavior::ControlBehavior, Control, ControlSettings},
+	control::{Control, ControlSettings},
 	rectangle::Rectangle,
 	Controls, Event, EventQueue,
 };
@@ -27,7 +28,7 @@ impl Knob {
 	}
 }
 
-impl ControlBehavior<CustomEvent> for Knob {
+impl Behavior<CustomEvent> for Knob {
 	fn on(
 		&mut self,
 		event: knobby::Event<CustomEvent>,
@@ -99,11 +100,13 @@ impl MainState {
 				fonts: vec![include_bytes!("resources/Roboto-Regular.ttf").to_vec()],
 			},
 		)?;
-		backend.gui.add_control(ControlSettings {
-			rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
-			height: 0,
-			behaviors: vec![Box::new(Knob::new(0))],
-		});
+		backend.gui.add_control(
+			ControlSettings {
+				rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
+				height: 0,
+			},
+			vec![Box::new(Knob::new(0))],
+		);
 		backend.gui.emit(Event::SetParameter(0, 0.5), None);
 		let mut parameters = HashMap::new();
 		parameters.insert(0, 0.5);

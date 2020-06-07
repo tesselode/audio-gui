@@ -1,7 +1,7 @@
 use super::Control;
 use crate::{canvas::Canvas, Controls, Event, EventQueue};
 
-pub trait ControlBehavior<CustomEvent> {
+pub trait Behavior<CustomEvent> {
 	fn on(
 		&mut self,
 		_event: Event<CustomEvent>,

@@ -1,11 +1,13 @@
+pub mod behavior;
 pub mod canvas;
 pub mod control;
 pub mod mouse_button;
 pub mod point;
 pub mod rectangle;
 
+use behavior::Behavior;
 use canvas::{Canvas, Color, DrawMode, Style};
-use control::{behavior::ControlBehavior, Control, ControlSettings};
+use control::{Control, ControlSettings};
 use enum_map::{enum_map, EnumMap};
 use mouse_button::MouseButton;
 use std::collections::HashMap;
@@ -38,7 +40,7 @@ impl Controls {
 		}
 	}
 
-	fn add<CustomEvent>(&mut self, settings: &ControlSettings<CustomEvent>) -> ControlId {
+	fn add(&mut self, settings: &ControlSettings) -> ControlId {
 		let id = self.next_control_id;
 		self.next_control_id += 1;
 		self.controls.insert(id, Control::new(settings));
@@ -70,7 +72,7 @@ impl<CustomEvent> EventQueue<CustomEvent> {
 
 pub struct Gui<CustomEvent> {
 	pub controls: Controls,
-	behaviors: HashMap<ControlId, Vec<Box<dyn ControlBehavior<CustomEvent>>>>,
+	behaviors: HashMap<ControlId, Vec<Box<dyn Behavior<CustomEvent>>>>,
 	hovered_control: Option<ControlId>,
 	held_control: EnumMap<MouseButton, Option<ControlId>>,
 	event_queue: EventQueue<CustomEvent>,
@@ -94,9 +96,13 @@ where
 		}
 	}
 
-	pub fn add_control(&mut self, settings: ControlSettings<CustomEvent>) -> ControlId {
+	pub fn add_control(
+		&mut self,
+		settings: ControlSettings,
+		behaviors: Vec<Box<dyn Behavior<CustomEvent>>>,
+	) -> ControlId {
 		let id = self.controls.add(&settings);
-		self.behaviors.insert(id, settings.behaviors);
+		self.behaviors.insert(id, behaviors);
 		id
 	}
 
