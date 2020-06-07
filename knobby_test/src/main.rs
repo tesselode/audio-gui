@@ -3,8 +3,9 @@ use knobby::{
 	behavior::Behavior,
 	canvas::{Alignment, ArcKind, Canvas, Color, DrawMode, Style, TextStyle},
 	control::{Control, ControlSettings},
-	rectangle::Rectangle,
-	Controls, Event, EventQueue,
+	event::Event,
+	geometry::Rectangle,
+	gui::{Controls, EventQueue},
 };
 use knobby_ggez_backend::{GgezBackend, GgezBackendOptions};
 use std::{collections::HashMap, f32::consts::PI};
@@ -31,7 +32,7 @@ impl Knob {
 impl Behavior<CustomEvent> for Knob {
 	fn on(
 		&mut self,
-		event: knobby::Event<CustomEvent>,
+		event: Event<CustomEvent>,
 		_controls: &mut Controls,
 		event_queue: &mut EventQueue<CustomEvent>,
 	) {

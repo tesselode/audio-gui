@@ -4,10 +4,9 @@ use ggez::{
 };
 use knobby::{
 	canvas::{ArcKind, Canvas, Color, DrawMode, DrawOperation, Style, TextStyle},
+	geometry::{Point, Rectangle},
+	gui::Gui,
 	mouse_button::MouseButton,
-	point::Point,
-	rectangle::Rectangle,
-	Gui,
 };
 
 fn convert_draw_mode(mode: DrawMode) -> ggez::graphics::DrawMode {

@@ -1,4 +1,4 @@
-use super::{point::Point, rectangle::Rectangle};
+use super::geometry::{Point, Rectangle};
 
 #[derive(Copy, Clone)]
 pub struct Color {
