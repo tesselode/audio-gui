@@ -19,6 +19,7 @@ pub enum Event {
 	Press(MouseButton, f32, f32),
 	Release(MouseButton, f32, f32),
 	Click(MouseButton, f32, f32),
+	Drag(MouseButton, f32, f32, f32, f32),
 }
 
 pub struct Controls {
@@ -123,6 +124,19 @@ impl Gui {
 			}
 			if let Some(id) = previous_hovered_control {
 				self.emit(Event::Unhover, id);
+			}
+		}
+		// emit drag events
+		let held_control = self.held_control;
+		for (mouse_button, held) in &held_control {
+			if let Some(id) = held {
+				let control = self.controls.get(&id).unwrap();
+				let relative_x = x - control.rectangle.x;
+				let relative_y = y - control.rectangle.y;
+				self.emit(
+					Event::Drag(mouse_button, relative_x, relative_y, dx, dy),
+					*id,
+				);
 			}
 		}
 	}

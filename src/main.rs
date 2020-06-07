@@ -30,6 +30,9 @@ impl ControlBehavior for TestBehavior {
 			gui::Event::Click(mouse_button, x, y) => {
 				println!("Click: {:?}, {}, {}", mouse_button, x, y);
 			}
+			gui::Event::Drag(mouse_button, x, y, dx, dy) => {
+				println!("Drag: {:?}, {}, {}, {}, {}", mouse_button, x, y, dx, dy);
+			}
 		}
 	}
 
