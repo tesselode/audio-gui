@@ -36,7 +36,11 @@ impl ControlBehavior for TestBehavior {
 	fn draw(&self, control: &Control, canvas: &mut Canvas) {
 		let style = Style {
 			mode: DrawMode::Stroke(4.0),
-			color: Color::new(1.0, 1.0, 1.0, 0.5),
+			color: if control.is_hovered {
+				Color::new(1.0, 1.0, 0.0, 0.5)
+			} else {
+				Color::new(1.0, 1.0, 1.0, 0.5)
+			},
 		};
 		canvas.draw_circle(
 			control.rectangle.get_center(),
