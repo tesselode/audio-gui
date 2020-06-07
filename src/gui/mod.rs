@@ -94,11 +94,9 @@ impl Gui {
 	fn update_control_state(&mut self) {
 		for (id, control) in &mut self.controls.controls {
 			control.is_hovered = self.hovered_control == Some(*id);
-			control.is_held[MouseButton::Left] = self.held_control[MouseButton::Left] == Some(*id);
-			control.is_held[MouseButton::Middle] =
-				self.held_control[MouseButton::Middle] == Some(*id);
-			control.is_held[MouseButton::Right] =
-				self.held_control[MouseButton::Right] == Some(*id);
+			for (mouse_button, held) in &mut control.is_held {
+				*held = self.held_control[mouse_button] == Some(*id);
+			}
 		}
 	}
 
