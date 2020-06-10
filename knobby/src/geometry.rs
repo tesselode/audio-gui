@@ -1,3 +1,5 @@
+use rusttype::{Font, Scale};
+
 /// Represents a point in 2D space.
 #[derive(Copy, Clone, Debug)]
 pub struct Point {
@@ -43,6 +45,35 @@ impl Rectangle {
 			y,
 			width,
 			height,
+		}
+	}
+
+	pub fn around_text(font: &Font, text: &str, size: f32, position: Point) -> Self {
+		let mut min_x: f32 = position.x;
+		let mut min_y: f32 = position.y;
+		let mut max_x: f32 = position.x;
+		let mut max_y: f32 = position.y;
+		for glyph in font.layout(
+			text,
+			Scale { x: size, y: size },
+			rusttype::Point {
+				x: position.x,
+				y: position.y,
+			},
+		) {
+			let v_metrics = font.v_metrics(glyph.scale());
+			if let Some(bounds) = glyph.pixel_bounding_box() {
+				min_x = min_x.min(bounds.min.x as f32);
+				min_y = min_y.min(bounds.min.y as f32 + v_metrics.ascent);
+				max_x = max_x.max(bounds.max.x as f32);
+				max_y = max_y.max(bounds.max.y as f32 + v_metrics.ascent);
+			}
+		}
+		Self {
+			x: min_x,
+			y: min_y,
+			width: max_x - min_x,
+			height: max_y - min_y,
 		}
 	}
 

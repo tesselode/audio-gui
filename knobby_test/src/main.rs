@@ -37,6 +37,38 @@ impl Behavior<CustomEvent> for Outline {
 	}
 }
 
+struct Text {
+	font_index: usize,
+	text: String,
+	size: f32,
+}
+
+impl Text {
+	pub fn new(font_index: usize, text: String, size: f32) -> Self {
+		Self {
+			font_index,
+			text,
+			size,
+		}
+	}
+}
+
+impl Behavior<CustomEvent> for Text {
+	fn draw(&self, control: &Control, canvas: &mut Canvas) {
+		canvas.draw_text(
+			self.text.clone(),
+			Point::new(control.rectangle.x, control.rectangle.y),
+			TextStyle {
+				font_id: self.font_index,
+				size: self.size,
+				horizontal_alignment: Alignment::Start,
+				vertical_alignment: Alignment::Start,
+				color: Color::new(1.0, 1.0, 1.0, 1.0),
+			},
+		)
+	}
+}
+
 struct MainState {
 	backend: GgezBackend<CustomEvent>,
 }
@@ -44,21 +76,22 @@ struct MainState {
 impl MainState {
 	pub fn new(ctx: &mut ggez::Context) -> ggez::GameResult<Self> {
 		let mut backend = GgezBackend::new();
-		let rect_1 = Rectangle::new(100.0, 100.0, 50.0, 50.0);
-		let rect_2 = rect_1.pad(10.0);
+		backend.load_font(ctx, include_bytes!("resources/Roboto-Regular.ttf"))?;
+		let rect_1 = Rectangle::around_text(
+			backend.gui.get_font(0).unwrap(),
+			"Hello world!",
+			40.0,
+			Point::new(100.0, 200.0),
+		);
 		backend.gui.add_control(
 			ControlSettings {
 				rectangle: rect_1,
 				height: 0,
 			},
-			vec![Box::new(Outline::new(Color::new(1.0, 1.0, 1.0, 1.0)))],
-		);
-		backend.gui.add_control(
-			ControlSettings {
-				rectangle: rect_2,
-				height: 0,
-			},
-			vec![Box::new(Outline::new(Color::new(1.0, 1.0, 0.0, 1.0)))],
+			vec![
+				Box::new(Outline::new(Color::new(1.0, 1.0, 1.0, 1.0))),
+				Box::new(Text::new(0, "Hello world!".into(), 40.0)),
+			],
 		);
 		Ok(Self { backend })
 	}
