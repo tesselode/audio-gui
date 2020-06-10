@@ -5,7 +5,7 @@ use knobby::{
 	control::{Control, ControlSettings},
 	event::Event,
 	geometry::{Point, Rectangle},
-	gui::{Controls, EventQueue},
+	gui::{Controls, EventQueue, Resources},
 };
 use knobby_ggez_backend::GgezBackend;
 use std::{collections::HashMap, f32::consts::PI};
@@ -26,7 +26,7 @@ impl Outline {
 }
 
 impl Behavior<CustomEvent> for Outline {
-	fn draw(&self, control: &Control, canvas: &mut Canvas) {
+	fn draw(&self, control: &Control, _resources: &Resources, canvas: &mut Canvas) {
 		canvas.draw_rectangle(
 			control.rectangle,
 			Style {
@@ -54,7 +54,7 @@ impl Text {
 }
 
 impl Behavior<CustomEvent> for Text {
-	fn draw(&self, control: &Control, canvas: &mut Canvas) {
+	fn draw(&self, control: &Control, _resources: &Resources, canvas: &mut Canvas) {
 		canvas.draw_text(
 			self.text.clone(),
 			Point::new(control.rectangle.x, control.rectangle.y),
@@ -78,7 +78,7 @@ impl MainState {
 		let mut backend = GgezBackend::new();
 		backend.load_font(ctx, include_bytes!("resources/Roboto-Regular.ttf"))?;
 		let rect_1 = Rectangle::around_text(
-			backend.gui.get_font(0).unwrap(),
+			backend.gui.resources.get_font(0).unwrap(),
 			"Hello world!",
 			40.0,
 			Point::new(100.0, 200.0),

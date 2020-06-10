@@ -46,6 +46,40 @@ impl Controls {
 	}
 }
 
+/// A unqiue identifier for a font.
+pub type FontId = usize;
+
+/// A collection of resources.
+pub struct Resources {
+	fonts: HashMap<FontId, Font<'static>>,
+	next_font_id: FontId,
+}
+
+impl Resources {
+	fn new() -> Self {
+		Self {
+			fonts: HashMap::new(),
+			next_font_id: 0,
+		}
+	}
+
+	pub fn load_font(&mut self, font_data: &'static [u8]) -> Result<FontId, InvalidFontError> {
+		match Font::try_from_bytes(font_data) {
+			Some(font) => {
+				let id = self.next_font_id;
+				self.fonts.insert(id, font);
+				Ok(id)
+			}
+			None => Err(InvalidFontError {}),
+		}
+	}
+
+	/// Gets a reference to a previously loaded font.
+	pub fn get_font(&self, id: FontId) -> Option<&Font> {
+		self.fonts.get(&id)
+	}
+}
+
 /// A list of events to send to the audio thread.
 pub struct EventQueue<CustomEvent> {
 	events: Vec<Event<CustomEvent>>,
@@ -70,11 +104,11 @@ impl<CustomEvent> EventQueue<CustomEvent> {
 pub struct Gui<CustomEvent> {
 	/// The list of controls contained in the GUI.
 	pub controls: Controls,
+	pub resources: Resources,
 	behaviors: HashMap<ControlId, Vec<Box<dyn Behavior<CustomEvent>>>>,
 	hovered_control: Option<ControlId>,
 	held_control: EnumMap<MouseButton, Option<ControlId>>,
 	event_queue: EventQueue<CustomEvent>,
-	fonts: Vec<Font<'static>>,
 }
 
 impl<CustomEvent> Gui<CustomEvent>
@@ -85,6 +119,7 @@ where
 	pub fn new() -> Self {
 		Self {
 			controls: Controls::new(),
+			resources: Resources::new(),
 			behaviors: HashMap::new(),
 			hovered_control: None,
 			held_control: enum_map! {
@@ -93,7 +128,6 @@ where
 				MouseButton::Right => None,
 			},
 			event_queue: EventQueue::new(),
-			fonts: vec![],
 		}
 	}
 
@@ -109,22 +143,6 @@ where
 		id
 	}
 
-	/// Loads a font for use in the GUI.
-	pub fn load_font(&mut self, font_data: &'static [u8]) -> Result<(), InvalidFontError> {
-		match Font::try_from_bytes(font_data) {
-			Some(font) => {
-				self.fonts.push(font);
-				Ok(())
-			}
-			None => Err(InvalidFontError {}),
-		}
-	}
-
-	/// Gets a reference to a previously loaded font.
-	pub fn get_font(&self, index: usize) -> Option<&Font> {
-		self.fonts.get(index)
-	}
-
 	/// Emits an event to the behaviors in the GUI.
 	///
 	/// If a control ID is specified, the event will only be emitted to
@@ -134,13 +152,23 @@ where
 		if let Some(id) = control_id {
 			if let Some(behaviors) = self.behaviors.get_mut(&id) {
 				for behavior in behaviors {
-					behavior.on(event, &mut self.controls, &mut self.event_queue);
+					behavior.on(
+						event,
+						&mut self.controls,
+						&self.resources,
+						&mut self.event_queue,
+					);
 				}
 			}
 		} else {
 			for (_, behaviors) in &mut self.behaviors {
 				for behavior in behaviors {
-					behavior.on(event, &mut self.controls, &mut self.event_queue);
+					behavior.on(
+						event,
+						&mut self.controls,
+						&self.resources,
+						&mut self.event_queue,
+					);
 				}
 			}
 		}
@@ -251,7 +279,7 @@ where
 	pub fn draw(&self, canvas: &mut Canvas) {
 		for (id, control) in &self.controls.controls {
 			for behavior in &self.behaviors[id] {
-				behavior.draw(control, canvas);
+				behavior.draw(control, &self.resources, canvas);
 			}
 		}
 	}

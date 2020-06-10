@@ -49,7 +49,7 @@ where
 
 	pub fn load_font(&mut self, ctx: &mut Context, font_data: &'static [u8]) -> GameResult {
 		self.fonts.push(Font::new_glyph_font_bytes(ctx, font_data)?);
-		self.gui.load_font(font_data).unwrap();
+		self.gui.resources.load_font(font_data).unwrap();
 		Ok(())
 	}
 

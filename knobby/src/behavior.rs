@@ -2,7 +2,7 @@ use crate::{
 	canvas::Canvas,
 	control::Control,
 	event::Event,
-	gui::{Controls, EventQueue},
+	gui::{Controls, EventQueue, Resources},
 };
 
 /// Defines a set of behaviors and a visual representation for
@@ -24,10 +24,11 @@ pub trait Behavior<CustomEvent> {
 		&mut self,
 		_event: Event<CustomEvent>,
 		_controls: &mut Controls,
+		_resources: &Resources,
 		_event_queue: &mut EventQueue<CustomEvent>,
 	) {
 	}
 
 	/// Defines how a control should be drawn.
-	fn draw(&self, _control: &Control, _canvas: &mut Canvas) {}
+	fn draw(&self, _control: &Control, _resources: &Resources, _canvas: &mut Canvas) {}
 }
