@@ -234,23 +234,4 @@ where
 			}
 		}
 	}
-
-	pub fn draw_debug(&self, canvas: &mut Canvas) {
-		for (id, control) in &self.controls.controls {
-			let color = if self.held_control[MouseButton::Left] == Some(*id) {
-				Color::new(1.0, 1.0, 0.0, 1.0)
-			} else if self.hovered_control == Some(*id) {
-				Color::new(1.0, 0.0, 0.0, 1.0)
-			} else {
-				Color::new(1.0, 1.0, 1.0, 1.0)
-			};
-			canvas.draw_rectangle(
-				control.rectangle,
-				Style {
-					mode: DrawMode::Stroke(2.0),
-					color,
-				},
-			);
-		}
-	}
 }
