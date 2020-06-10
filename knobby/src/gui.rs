@@ -2,10 +2,12 @@ use crate::{
 	behavior::Behavior,
 	canvas::{Canvas, Color, DrawMode, Style},
 	control::{Control, ControlSettings},
+	error::InvalidFontError,
 	event::Event,
 	input::MouseButton,
 };
 use enum_map::{enum_map, EnumMap};
+use rusttype::Font;
 use std::collections::HashMap;
 
 /// A unqiue identifier for a control.
@@ -71,6 +73,7 @@ pub struct Gui<CustomEvent> {
 	hovered_control: Option<ControlId>,
 	held_control: EnumMap<MouseButton, Option<ControlId>>,
 	event_queue: EventQueue<CustomEvent>,
+	fonts: Vec<Font<'static>>,
 }
 
 impl<CustomEvent> Gui<CustomEvent>
@@ -89,6 +92,7 @@ where
 				MouseButton::Right => None,
 			},
 			event_queue: EventQueue::new(),
+			fonts: vec![],
 		}
 	}
 
@@ -102,6 +106,22 @@ where
 		let id = self.controls.add(&settings);
 		self.behaviors.insert(id, behaviors);
 		id
+	}
+
+	/// Loads a font for use in the GUI.
+	pub fn load_font(&mut self, font_data: &'static [u8]) -> Result<(), InvalidFontError> {
+		match Font::try_from_bytes(font_data) {
+			Some(font) => {
+				self.fonts.push(font);
+				Ok(())
+			}
+			None => Err(InvalidFontError {}),
+		}
+	}
+
+	/// Gets a reference to a previously loaded font.
+	pub fn get_font(&self, index: usize) -> Option<&Font> {
+		self.fonts.get(index)
 	}
 
 	/// Emits an event to the behaviors in the GUI.

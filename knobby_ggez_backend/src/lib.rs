@@ -31,10 +31,6 @@ fn convert_point(point: Point) -> ggez::mint::Point2<f32> {
 	}
 }
 
-pub struct GgezBackendOptions {
-	pub fonts: Vec<Vec<u8>>,
-}
-
 pub struct GgezBackend<CustomEvent> {
 	pub gui: Gui<CustomEvent>,
 	fonts: Vec<Font>,
@@ -44,15 +40,17 @@ impl<CustomEvent> GgezBackend<CustomEvent>
 where
 	CustomEvent: Copy + Clone,
 {
-	pub fn new(ctx: &mut Context, mut options: GgezBackendOptions) -> GameResult<Self> {
-		let mut fonts = vec![];
-		for bytes in options.fonts.drain(..) {
-			fonts.push(Font::new_glyph_font_bytes(ctx, &bytes)?);
-		}
-		Ok(Self {
+	pub fn new() -> Self {
+		Self {
 			gui: Gui::new(),
-			fonts,
-		})
+			fonts: vec![],
+		}
+	}
+
+	pub fn load_font(&mut self, ctx: &mut Context, font_data: &'static [u8]) -> GameResult {
+		self.fonts.push(Font::new_glyph_font_bytes(ctx, font_data)?);
+		self.gui.load_font(font_data).unwrap();
+		Ok(())
 	}
 
 	pub fn mouse_motion_event(

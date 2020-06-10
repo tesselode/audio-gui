@@ -7,7 +7,7 @@ use knobby::{
 	geometry::Rectangle,
 	gui::{Controls, EventQueue},
 };
-use knobby_ggez_backend::{GgezBackend, GgezBackendOptions};
+use knobby_ggez_backend::GgezBackend;
 use std::{collections::HashMap, f32::consts::PI};
 
 #[derive(Copy, Clone)]
@@ -95,12 +95,8 @@ struct MainState {
 
 impl MainState {
 	pub fn new(ctx: &mut ggez::Context) -> ggez::GameResult<Self> {
-		let mut backend = GgezBackend::new(
-			ctx,
-			GgezBackendOptions {
-				fonts: vec![include_bytes!("resources/Roboto-Regular.ttf").to_vec()],
-			},
-		)?;
+		let mut backend = GgezBackend::new();
+		backend.load_font(ctx, include_bytes!("resources/Roboto-Regular.ttf"))?;
 		backend.gui.add_control(
 			ControlSettings {
 				rectangle: Rectangle::new(50.0, 50.0, 100.0, 100.0),
