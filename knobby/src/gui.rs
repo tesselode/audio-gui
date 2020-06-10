@@ -4,6 +4,7 @@ use crate::{
 	control::{Control, ControlSettings},
 	error::InvalidFontError,
 	event::Event,
+	geometry::Point,
 	input::MouseButton,
 };
 use enum_map::{enum_map, EnumMap};
@@ -171,7 +172,7 @@ where
 		// get the first hovered control
 		self.hovered_control = None;
 		for (id, control) in &self.controls.controls {
-			if control.rectangle.contains_point(x, y) {
+			if control.rectangle.contains_point(Point::new(x, y)) {
 				self.hovered_control = Some(*id);
 				break;
 			}

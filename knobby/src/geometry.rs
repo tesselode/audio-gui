@@ -1,5 +1,5 @@
 /// Represents a point in 2D space.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Point {
 	/// The x position of the point.
 	pub x: f32,
@@ -23,7 +23,7 @@ impl Point {
 }
 
 /// Represents a rectangle.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Rectangle {
 	/// The x position of the top-left corner of the rectangle.
 	pub x: f32,
@@ -47,12 +47,89 @@ impl Rectangle {
 	}
 
 	/// Returns `true` if the rectangle contains the given point.
-	pub fn contains_point(&self, x: f32, y: f32) -> bool {
-		x >= self.x && x <= self.x + self.width && y >= self.y && y <= self.y + self.height
+	pub fn contains_point(&self, point: Point) -> bool {
+		point.x >= self.x
+			&& point.x <= self.x + self.width
+			&& point.y >= self.y
+			&& point.y <= self.y + self.height
 	}
 
 	/// Gets the center of the rectangle.
 	pub fn get_center(&self) -> Point {
 		Point::new(self.x + self.width / 2.0, self.y + self.height / 2.0)
+	}
+
+	pub fn pad_left(&self, amount: f32) -> Self {
+		Self {
+			x: self.x - amount,
+			y: self.y,
+			width: self.width + amount,
+			height: self.height,
+		}
+	}
+
+	pub fn pad_top(&self, amount: f32) -> Self {
+		Self {
+			x: self.x,
+			y: self.y - amount,
+			width: self.width,
+			height: self.height + amount,
+		}
+	}
+
+	pub fn pad_right(&self, amount: f32) -> Self {
+		Self {
+			x: self.x,
+			y: self.y,
+			width: self.width + amount,
+			height: self.height,
+		}
+	}
+
+	pub fn pad_bottom(&self, amount: f32) -> Self {
+		Self {
+			x: self.x,
+			y: self.y,
+			width: self.width,
+			height: self.height + amount,
+		}
+	}
+
+	pub fn pad_horizontal(&self, amount: f32) -> Self {
+		Self {
+			x: self.x - amount,
+			y: self.y,
+			width: self.width + amount * 2.0,
+			height: self.height,
+		}
+	}
+
+	pub fn pad_vertical(&self, amount: f32) -> Self {
+		Self {
+			x: self.x,
+			y: self.y - amount,
+			width: self.width,
+			height: self.height + amount * 2.0,
+		}
+	}
+
+	pub fn pad(&self, amount: f32) -> Self {
+		Self {
+			x: self.x - amount,
+			y: self.y - amount,
+			width: self.width + amount * 2.0,
+			height: self.height + amount * 2.0,
+		}
+	}
+
+	pub fn scale(&self, x_amount: f32, y_amount: f32, origin: Point) -> Self {
+		let width_increment = self.width * x_amount - self.width;
+		let height_increment = self.height * y_amount - self.height;
+		Self {
+			x: self.x - width_increment * origin.x,
+			y: self.y - height_increment * origin.y,
+			width: self.width + width_increment,
+			height: self.height + height_increment,
+		}
 	}
 }
