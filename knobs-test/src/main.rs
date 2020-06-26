@@ -21,17 +21,42 @@ struct MainState {
 impl MainState {
 	pub fn new() -> Self {
 		let mut gui = Gui::new();
-		gui.add(
-			ElementSettings {
-				rect: Rect::new(50.0, 50.0, 100.0, 200.0),
-				..Default::default()
-			},
-			Box::new(
+		gui.add(ElementSettings {
+			rect: Rect::new(50.0, 50.0, 100.0, 200.0),
+			behavior: Some(Box::new(
 				Rectangle::new()
 					.fill(Color::new(0.25, 0.25, 0.25, 0.25))
 					.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-			),
-		);
+			)),
+			children: vec![ElementSettings {
+				rect: Rect::new(50.0, 50.0, 25.0, 25.0),
+				behavior: Some(Box::new(
+					Rectangle::new()
+						.fill(Color::new(0.25, 0.25, 0.25, 0.25))
+						.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+				)),
+				..Default::default()
+			}],
+			..Default::default()
+		});
+		gui.add(ElementSettings {
+			rect: Rect::new(400.0, 50.0, 100.0, 200.0),
+			behavior: Some(Box::new(
+				Rectangle::new()
+					.fill(Color::new(0.25, 0.25, 0.25, 0.25))
+					.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+			)),
+			children: vec![ElementSettings {
+				rect: Rect::new(50.0, 50.0, 25.0, 25.0),
+				behavior: Some(Box::new(
+					Rectangle::new()
+						.fill(Color::new(0.25, 0.25, 0.25, 0.25))
+						.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+				)),
+				..Default::default()
+			}],
+			..Default::default()
+		});
 		Self { gui }
 	}
 }

@@ -1,4 +1,4 @@
-use crate::geometry::rect::Rect;
+use crate::geometry::{rect::Rect, vector::Vector};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Color {
@@ -32,15 +32,37 @@ pub enum DrawOperation {
 
 pub struct Canvas {
 	pub operations: Vec<DrawOperation>,
+	pub translation_stack: Vec<Vector>,
 }
 
 impl Canvas {
 	pub fn new() -> Self {
-		Self { operations: vec![] }
+		Self {
+			operations: vec![],
+			translation_stack: vec![],
+		}
+	}
+
+	fn get_current_translation(&self) -> Vector {
+		*self
+			.translation_stack
+			.last()
+			.unwrap_or(&Vector::new(0.0, 0.0))
+	}
+
+	pub fn push_translation(&mut self, translation: Vector) {
+		self.translation_stack
+			.push(self.get_current_translation() + translation);
+	}
+
+	pub fn pop_translation(&mut self) {
+		self.translation_stack.pop();
 	}
 
 	pub fn draw_rectangle(&mut self, rect: Rect, style: ShapeStyle) {
-		self.operations
-			.push(DrawOperation::DrawRectangle(rect, style));
+		self.operations.push(DrawOperation::DrawRectangle(
+			rect.shifted(self.get_current_translation()),
+			style,
+		));
 	}
 }

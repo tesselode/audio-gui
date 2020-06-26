@@ -13,6 +13,13 @@ impl Rect {
 			size: Vector::new(width, height),
 		}
 	}
+
+	pub fn shifted(self, translation: Vector) -> Self {
+		Self {
+			position: self.position + translation,
+			..self
+		}
+	}
 }
 
 impl Default for Rect {
