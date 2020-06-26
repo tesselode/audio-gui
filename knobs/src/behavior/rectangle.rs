@@ -38,6 +38,9 @@ impl Behavior for Rectangle {
 		match event {
 			Event::Hover(id, position) => println!("Event::Hover({:?}, {:?})", id, position),
 			Event::Unhover(id) => println!("Event::Unhover({:?})", id),
+			Event::Press(id, button) => println!("Event::Press({:?}, {:?})", id, button),
+			Event::Release(id, button) => println!("Event::Release({:?}, {:?})", id, button),
+			Event::Click(id, button) => println!("Event::Click({:?}, {:?})", id, button),
 		}
 	}
 

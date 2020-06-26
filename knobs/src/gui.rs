@@ -3,8 +3,14 @@ use crate::{
 	canvas::Canvas,
 	event::Event,
 	geometry::{rect::Rect, vector::Vector},
+	input::MouseButton,
 };
-use std::{collections::HashMap, iter::Zip, slice::Iter};
+use enum_map::{enum_map, EnumMap};
+use std::{
+	collections::HashMap,
+	iter::Zip,
+	slice::{Iter, IterMut},
+};
 
 #[derive(Debug, Eq, Hash, Copy, Clone)]
 pub struct ElementId {
@@ -48,6 +54,13 @@ pub struct Element {
 	pub height: f32,
 	pub parent_id: Option<ElementId>,
 	pub hover_position: Option<Vector>,
+	pub held: EnumMap<MouseButton, bool>,
+}
+
+impl Element {
+	pub fn is_hovered(&self) -> bool {
+		self.hover_position.is_some()
+	}
 }
 
 #[derive(Debug)]
@@ -74,6 +87,10 @@ impl Elements {
 
 	pub fn iter(&self) -> Zip<ElementIdIter, Iter<Element>> {
 		ElementIdIter::new(self.elements.len()).zip(self.elements.iter())
+	}
+
+	pub fn iter_mut(&mut self) -> Zip<ElementIdIter, IterMut<Element>> {
+		ElementIdIter::new(self.elements.len()).zip(self.elements.iter_mut())
 	}
 
 	pub fn get(&self, element_id: ElementId) -> &Element {
@@ -141,6 +158,11 @@ impl Gui {
 				None => None,
 			},
 			hover_position: None,
+			held: enum_map! {
+				MouseButton::Left => false,
+				MouseButton::Middle => false,
+				MouseButton::Right => false,
+			},
 		});
 		if let Some(behavior) = settings.behavior {
 			self.behaviors.insert(id, behavior);
@@ -202,6 +224,35 @@ impl Gui {
 		let mouse_position = Vector::new(x, y);
 		let nodes = self.elements.get_tree(None);
 		self.update_hover_state(&nodes, mouse_position, false);
+	}
+
+	pub fn on_press_mouse_button(&mut self, button: MouseButton) {
+		let mut events = vec![];
+		for (id, element) in self.elements.iter_mut() {
+			if element.is_hovered() {
+				element.held[button] = true;
+				events.push((Event::Press(id, button), Some(id)));
+			}
+		}
+		for (event, id) in &events {
+			self.emit(event, *id);
+		}
+	}
+
+	pub fn on_release_mouse_button(&mut self, button: MouseButton) {
+		let mut events = vec![];
+		for (id, element) in self.elements.iter_mut() {
+			if element.held[button] {
+				element.held[button] = false;
+				events.push((Event::Release(id, button), Some(id)));
+				if element.is_hovered() {
+					events.push((Event::Click(id, button), Some(id)));
+				}
+			}
+		}
+		for (event, id) in &events {
+			self.emit(event, *id);
+		}
 	}
 
 	fn draw_nodes(&self, nodes: &Vec<TreeNode>, canvas: &mut Canvas) {

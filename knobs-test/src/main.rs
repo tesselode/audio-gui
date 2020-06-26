@@ -7,6 +7,7 @@ use knobs::{
 	canvas::{Color, DrawOperation, ShapeStyle},
 	geometry::rect::Rect,
 	gui::{ElementSettings, Gui},
+	input::MouseButton,
 };
 
 fn to_ggez_color(color: Color) -> graphics::Color {
@@ -64,6 +65,40 @@ impl MainState {
 impl ggez::event::EventHandler for MainState {
 	fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
 		self.gui.on_move_mouse(x, y, dx, dy);
+	}
+
+	fn mouse_button_down_event(
+		&mut self,
+		_ctx: &mut Context,
+		button: ggez::event::MouseButton,
+		_x: f32,
+		_y: f32,
+	) {
+		self.gui.on_press_mouse_button(match button {
+			ggez::event::MouseButton::Left => MouseButton::Left,
+			ggez::event::MouseButton::Right => MouseButton::Right,
+			ggez::event::MouseButton::Middle => MouseButton::Middle,
+			ggez::event::MouseButton::Other(_) => {
+				return;
+			}
+		})
+	}
+
+	fn mouse_button_up_event(
+		&mut self,
+		_ctx: &mut Context,
+		button: ggez::event::MouseButton,
+		_x: f32,
+		_y: f32,
+	) {
+		self.gui.on_release_mouse_button(match button {
+			ggez::event::MouseButton::Left => MouseButton::Left,
+			ggez::event::MouseButton::Right => MouseButton::Right,
+			ggez::event::MouseButton::Middle => MouseButton::Middle,
+			ggez::event::MouseButton::Other(_) => {
+				return;
+			}
+		})
 	}
 
 	fn update(&mut self, _ctx: &mut Context) -> GameResult {
