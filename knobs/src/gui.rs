@@ -3,19 +3,55 @@ use crate::{
 	canvas::Canvas,
 	geometry::{rect::Rect, vector::Vector},
 };
-use std::{iter::Zip, ops::Range, slice::Iter};
+use std::{collections::HashMap, iter::Zip, slice::Iter};
+
+#[derive(Debug, Eq, Hash, Copy, Clone)]
+pub struct ElementId {
+	index: usize,
+}
+
+impl PartialEq for ElementId {
+	fn eq(&self, other: &Self) -> bool {
+		self.index == other.index
+	}
+}
+
+pub struct ElementIdIter {
+	index: usize,
+	len: usize,
+}
+
+impl ElementIdIter {
+	fn new(len: usize) -> Self {
+		Self { index: 0, len }
+	}
+}
+
+impl Iterator for ElementIdIter {
+	type Item = ElementId;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		let item = if self.index < self.len {
+			Some(ElementId { index: self.index })
+		} else {
+			None
+		};
+		self.index += 1;
+		item
+	}
+}
 
 #[derive(Debug)]
 pub struct Element {
 	pub rect: Rect,
 	pub height: f32,
-	pub parent_index: Option<usize>,
+	pub parent_index: Option<ElementId>,
 	pub hover_position: Option<Vector>,
 }
 
 #[derive(Debug)]
 pub struct TreeNode {
-	element_index: usize,
+	element_id: ElementId,
 	children: Vec<TreeNode>,
 }
 
@@ -29,16 +65,30 @@ impl Elements {
 		Self { elements: vec![] }
 	}
 
-	pub fn iter(&self) -> Zip<Range<usize>, Iter<Element>> {
-		(0..self.elements.len()).zip(self.elements.iter())
+	fn next_element_id(&self) -> ElementId {
+		ElementId {
+			index: self.elements.len(),
+		}
 	}
 
-	pub fn get_tree(&self, parent_id: Option<usize>) -> Vec<TreeNode> {
+	pub fn iter(&self) -> Zip<ElementIdIter, Iter<Element>> {
+		ElementIdIter::new(self.elements.len()).zip(self.elements.iter())
+	}
+
+	pub fn get(&self, element_id: ElementId) -> &Element {
+		self.elements.get(element_id.index).unwrap()
+	}
+
+	pub fn get_mut(&mut self, element_id: ElementId) -> &mut Element {
+		self.elements.get_mut(element_id.index).unwrap()
+	}
+
+	pub fn get_tree(&self, parent_id: Option<ElementId>) -> Vec<TreeNode> {
 		let mut nodes = vec![];
 		for (element_index, element) in self.iter() {
 			if element.parent_index == parent_id {
 				nodes.push(TreeNode {
-					element_index,
+					element_id: element_index,
 					children: self.get_tree(Some(element_index)),
 				});
 			}
@@ -57,21 +107,21 @@ pub struct ElementSettings {
 
 pub struct Gui {
 	pub elements: Elements,
-	pub behaviors: Vec<Option<Box<dyn Behavior>>>,
-	parent_stack: Vec<usize>,
+	pub behaviors: HashMap<ElementId, Box<dyn Behavior>>,
+	parent_stack: Vec<ElementId>,
 }
 
 impl Gui {
 	pub fn new() -> Self {
 		Self {
 			elements: Elements::new(),
-			behaviors: vec![],
+			behaviors: HashMap::new(),
 			parent_stack: vec![],
 		}
 	}
 
-	pub fn add(&mut self, settings: ElementSettings) -> usize {
-		let id = self.elements.elements.len();
+	pub fn add(&mut self, settings: ElementSettings) -> ElementId {
+		let id = self.elements.next_element_id();
 		self.elements.elements.push(Element {
 			rect: settings.rect,
 			height: settings.height,
@@ -81,7 +131,9 @@ impl Gui {
 			},
 			hover_position: None,
 		});
-		self.behaviors.push(settings.behavior);
+		if let Some(behavior) = settings.behavior {
+			self.behaviors.insert(id, behavior);
+		}
 		self.parent_stack.push(id);
 		for child_settings in settings.children {
 			self.add(child_settings);
@@ -97,17 +149,11 @@ impl Gui {
 		mut blocked: bool,
 	) -> bool {
 		for node in nodes.iter().rev() {
-			let element_position = self
-				.elements
-				.elements
-				.get(node.element_index)
-				.unwrap()
-				.rect
-				.position;
+			let element_position = self.elements.get(node.element_id).rect.position;
 			if self.update_hover_state(&node.children, mouse_position - element_position, blocked) {
 				blocked = true;
 			}
-			let mut element = self.elements.elements.get_mut(node.element_index).unwrap();
+			let mut element = self.elements.get_mut(node.element_id);
 			if !blocked && element.rect.contains_point(mouse_position) {
 				element.hover_position = Some(mouse_position - element.rect.position);
 				blocked = true;
@@ -126,8 +172,8 @@ impl Gui {
 
 	fn draw_nodes(&self, nodes: &Vec<TreeNode>, canvas: &mut Canvas) {
 		for node in nodes {
-			let element = &self.elements.elements.get(node.element_index).unwrap();
-			let behavior = &self.behaviors.get(node.element_index).unwrap();
+			let element = self.elements.get(node.element_id);
+			let behavior = self.behaviors.get(&node.element_id);
 			if let Some(behavior) = behavior {
 				behavior.draw_below(element, canvas);
 			}
