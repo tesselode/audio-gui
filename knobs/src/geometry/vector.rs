@@ -1,8 +1,9 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+#[derive(Debug)]
 pub struct Vector {
-	x: f32,
-	y: f32,
+	pub x: f32,
+	pub y: f32,
 }
 
 impl Vector {

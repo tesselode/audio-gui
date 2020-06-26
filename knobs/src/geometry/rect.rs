@@ -1,8 +1,9 @@
 use super::vector::Vector;
 
+#[derive(Debug)]
 pub struct Rect {
-	position: Vector,
-	size: Vector,
+	pub position: Vector,
+	pub size: Vector,
 }
 
 impl Rect {
@@ -11,5 +12,11 @@ impl Rect {
 			position: Vector::new(x, y),
 			size: Vector::new(width, height),
 		}
+	}
+}
+
+impl Default for Rect {
+	fn default() -> Self {
+		Self::new(0.0, 0.0, 0.0, 0.0)
 	}
 }

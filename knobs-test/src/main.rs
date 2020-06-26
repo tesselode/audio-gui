@@ -1,10 +1,18 @@
 use ggez::{graphics, Context, GameResult};
+use knobs::gui::{ElementSettings, Gui};
 
-struct MainState {}
+struct MainState {
+	gui: Gui,
+}
 
 impl MainState {
 	pub fn new() -> Self {
-		Self {}
+		let mut gui = Gui::new();
+		gui.add(ElementSettings {
+			..Default::default()
+		});
+		println!("{:#?}", gui.elements);
+		Self { gui }
 	}
 }
 
