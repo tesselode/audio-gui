@@ -1,9 +1,6 @@
 use ggez::{graphics, Context, GameResult};
 use knobs::{
-	behavior::{
-		flex::{Axis, Flex},
-		rectangle::Rectangle,
-	},
+	behavior::rectangle::Rectangle,
 	canvas::{Color, DrawOperation, ShapeStyle},
 	geometry::rect::Rect,
 	gui::{ElementSettings, Gui},
@@ -26,7 +23,6 @@ impl MainState {
 	pub fn new() -> Self {
 		let mut gui = Gui::new();
 		gui.add(ElementSettings {
-			behavior: Some(Box::new(Flex::new(Axis::Horizontal))),
 			children: vec![
 				ElementSettings {
 					rect: Rect::new(50.0, 50.0, 25.0, 25.0),
