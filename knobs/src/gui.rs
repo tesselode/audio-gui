@@ -1,6 +1,7 @@
 use crate::{
 	behavior::Behavior,
 	canvas::Canvas,
+	event::Event,
 	geometry::{rect::Rect, vector::Vector},
 };
 use std::{collections::HashMap, iter::Zip, slice::Iter};
@@ -152,6 +153,17 @@ impl Gui {
 		id
 	}
 
+	pub fn emit(&mut self, event: &Event, element_id: Option<ElementId>) {
+		if let Some(id) = element_id {
+			let behavior = self.behaviors.get_mut(&id).unwrap();
+			behavior.on(event, &mut self.elements);
+		} else {
+			for (_, behavior) in &mut self.behaviors {
+				behavior.on(event, &mut self.elements);
+			}
+		}
+	}
+
 	fn update_hover_state(
 		&mut self,
 		nodes: &Vec<TreeNode>,
@@ -160,15 +172,27 @@ impl Gui {
 	) -> bool {
 		for node in nodes.iter().rev() {
 			let element_position = self.elements.get(node.element_id).rect.position;
-			if self.update_hover_state(&node.children, mouse_position - element_position, blocked) {
+			let relative_mouse_position = mouse_position - element_position;
+			if self.update_hover_state(&node.children, relative_mouse_position, blocked) {
 				blocked = true;
 			}
 			let mut element = self.elements.get_mut(node.element_id);
-			if !blocked && element.rect.contains_point(mouse_position) {
-				element.hover_position = Some(mouse_position - element.rect.position);
+			let hovered_previous = element.hover_position.is_some();
+			let hovered = !blocked && element.rect.contains_point(mouse_position);
+			if hovered {
+				element.hover_position = Some(relative_mouse_position);
 				blocked = true;
 			} else {
 				element.hover_position = None;
+			}
+			if hovered && !hovered_previous {
+				self.emit(
+					&Event::Hover(node.element_id, relative_mouse_position),
+					Some(node.element_id),
+				);
+			}
+			if hovered_previous && !hovered {
+				self.emit(&Event::Unhover(node.element_id), Some(node.element_id));
 			}
 		}
 		blocked

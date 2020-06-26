@@ -1,7 +1,8 @@
 use super::Behavior;
 use crate::{
 	canvas::{Canvas, Color, ShapeStyle},
-	gui::Element,
+	event::Event,
+	gui::{Element, Elements},
 };
 
 pub struct Rectangle {
@@ -33,6 +34,13 @@ impl Rectangle {
 }
 
 impl Behavior for Rectangle {
+	fn on(&mut self, event: &Event, _elements: &mut Elements) {
+		match event {
+			Event::Hover(id, position) => println!("Event::Hover({:?}, {:?})", id, position),
+			Event::Unhover(id) => println!("Event::Unhover({:?})", id),
+		}
+	}
+
 	fn draw_below(&self, element: &Element, canvas: &mut Canvas) {
 		if let Some(color) = self.fill {
 			canvas.draw_rectangle(element.rect, ShapeStyle::Fill(color));
