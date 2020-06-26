@@ -1,7 +1,4 @@
-use crate::{
-	canvas::{Canvas, Color, ShapeStyle},
-	geometry::rect::Rect,
-};
+use crate::{behavior::Behavior, canvas::Canvas, geometry::rect::Rect};
 
 #[derive(Debug)]
 pub struct Element {
@@ -28,31 +25,34 @@ pub struct ElementSettings {
 
 pub struct Gui {
 	pub elements: Elements,
+	pub behaviors: Vec<Box<dyn Behavior>>,
 }
 
 impl Gui {
 	pub fn new() -> Self {
 		Self {
 			elements: Elements::new(),
+			behaviors: vec![],
 		}
 	}
 
-	pub fn add(&mut self, settings: ElementSettings) -> usize {
+	pub fn add(&mut self, settings: ElementSettings, behavior: Box<dyn Behavior>) -> usize {
 		let id = self.elements.elements.len();
 		self.elements.elements.push(Element {
 			rect: settings.rect,
 			height: settings.height,
 		});
+		self.behaviors.push(behavior);
 		id
 	}
 
 	pub fn draw(&self) -> Canvas {
 		let mut canvas = Canvas::new();
-		for element in &self.elements.elements {
-			canvas.draw_rectangle(
-				element.rect,
-				ShapeStyle::Stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-			)
+		for i in 0..self.elements.elements.len() {
+			let element = &self.elements.elements.get(i).unwrap();
+			let behavior = &self.behaviors.get(i).unwrap();
+			behavior.draw_below(element, &mut canvas);
+			behavior.draw_above(element, &mut canvas);
 		}
 		canvas
 	}

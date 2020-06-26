@@ -1,5 +1,6 @@
 use ggez::{graphics, Context, GameResult};
 use knobs::{
+	behavior::rectangle::Rectangle,
 	canvas::{Color, DrawOperation, ShapeStyle},
 	geometry::rect::Rect,
 	gui::{ElementSettings, Gui},
@@ -20,10 +21,17 @@ struct MainState {
 impl MainState {
 	pub fn new() -> Self {
 		let mut gui = Gui::new();
-		gui.add(ElementSettings {
-			rect: Rect::new(50.0, 50.0, 100.0, 200.0),
-			..Default::default()
-		});
+		gui.add(
+			ElementSettings {
+				rect: Rect::new(50.0, 50.0, 100.0, 200.0),
+				..Default::default()
+			},
+			Box::new(
+				Rectangle::new()
+					.fill(Color::new(0.25, 0.25, 0.25, 0.25))
+					.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+			),
+		);
 		Self { gui }
 	}
 }
