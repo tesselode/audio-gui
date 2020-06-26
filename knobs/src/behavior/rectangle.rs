@@ -1,7 +1,7 @@
 use super::Behavior;
 use crate::{
 	canvas::{Canvas, Color, ShapeStyle},
-	event::Event,
+	event::{Event, EventQueue},
 	gui::{Element, Elements},
 };
 
@@ -34,7 +34,7 @@ impl Rectangle {
 }
 
 impl Behavior for Rectangle {
-	fn on(&mut self, event: &Event, _elements: &mut Elements) {
+	fn on(&mut self, event: &Event, _elements: &mut Elements, _event_queue: &mut EventQueue) {
 		match event {
 			Event::Hover(id, position) => println!("Event::Hover({:?}, {:?})", id, position),
 			Event::Unhover(id) => println!("Event::Unhover({:?})", id),

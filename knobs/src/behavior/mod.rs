@@ -2,12 +2,12 @@ pub mod rectangle;
 
 use crate::{
 	canvas::Canvas,
-	event::Event,
+	event::{Event, EventQueue},
 	gui::{Element, ElementId, Elements},
 };
 
 pub trait Behavior {
-	fn on(&mut self, _event: &Event, _elements: &mut Elements) {}
+	fn on(&mut self, _event: &Event, _elements: &mut Elements, _event_queue: &mut EventQueue) {}
 
 	fn layout(&mut self, _elements: &mut Elements, _element_id: ElementId) {}
 

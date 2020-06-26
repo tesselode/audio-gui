@@ -7,7 +7,7 @@ pub use elements::{Elements, TreeNode};
 use crate::{
 	behavior::Behavior,
 	canvas::Canvas,
-	event::Event,
+	event::{Event, EventQueue},
 	geometry::{rect::Rect, vector::Vector},
 	input::MouseButton,
 };
@@ -34,6 +34,7 @@ pub struct ElementSettings {
 pub struct Gui {
 	pub elements: Elements,
 	pub behaviors: HashMap<ElementId, Box<dyn Behavior>>,
+	event_queue: EventQueue,
 	parent_stack: Vec<ElementId>,
 }
 
@@ -42,6 +43,7 @@ impl Gui {
 		Self {
 			elements: Elements::new(),
 			behaviors: HashMap::new(),
+			event_queue: EventQueue::new(),
 			parent_stack: vec![],
 		}
 	}
@@ -73,15 +75,36 @@ impl Gui {
 		id
 	}
 
-	pub fn emit(&mut self, event: &Event, element_id: Option<ElementId>) {
-		if let Some(id) = element_id {
-			let behavior = self.behaviors.get_mut(&id).unwrap();
-			behavior.on(event, &mut self.elements);
-		} else {
-			for (_, behavior) in &mut self.behaviors {
-				behavior.on(event, &mut self.elements);
+	fn flush_event_queue(&mut self) {
+		while self.event_queue.events.len() > 0 {
+			let mut events = vec![];
+			for event in self.event_queue.events.drain(..) {
+				events.push(event);
+			}
+			for (event, element_id) in &events {
+				if let Some(id) = element_id {
+					let behavior = self.behaviors.get_mut(&id).unwrap();
+					behavior.on(event, &mut self.elements, &mut self.event_queue);
+				} else {
+					for (_, behavior) in &mut self.behaviors {
+						behavior.on(event, &mut self.elements, &mut self.event_queue);
+					}
+				}
 			}
 		}
+	}
+
+	pub fn emit(&mut self, event: Event, element_id: Option<ElementId>) {
+		self.event_queue.push(event, element_id);
+		self.flush_event_queue();
+	}
+
+	pub fn drain_output_events(&mut self) -> Vec<Event> {
+		let mut events = vec![];
+		for event in self.event_queue.output_events.drain(..) {
+			events.push(event);
+		}
+		events
 	}
 
 	fn update_hover_state(
@@ -105,12 +128,12 @@ impl Gui {
 			}
 			if hovered && !hovered_previous {
 				self.emit(
-					&Event::Hover(node.element_id, relative_mouse_position),
+					Event::Hover(node.element_id, relative_mouse_position),
 					Some(node.element_id),
 				);
 			}
 			if hovered_previous && !hovered {
-				self.emit(&Event::Unhover(node.element_id), Some(node.element_id));
+				self.emit(Event::Unhover(node.element_id), Some(node.element_id));
 			}
 		}
 		blocked
@@ -130,8 +153,8 @@ impl Gui {
 				events.push((Event::Press(id, button), Some(id)));
 			}
 		}
-		for (event, id) in &events {
-			self.emit(event, *id);
+		for (event, id) in events {
+			self.emit(event, id);
 		}
 	}
 
@@ -146,8 +169,8 @@ impl Gui {
 				}
 			}
 		}
-		for (event, id) in &events {
-			self.emit(event, *id);
+		for (event, id) in events {
+			self.emit(event, id);
 		}
 	}
 
