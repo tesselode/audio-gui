@@ -116,16 +116,21 @@ impl Gui {
 		for node in nodes.iter().rev() {
 			let element_position = self.elements.get(node.element_id).rect.position;
 			let relative_mouse_position = mouse_position - element_position;
+			/* update the child elements first. if one of them blocks the parent element,
+			then we know the parent element can't be hovered. */
 			if self.update_hover_state(&node.children, relative_mouse_position, blocked) {
 				blocked = true;
 			}
 			let mut element = self.elements.get_mut(node.element_id);
 			let hovered_previous = element.hovered;
+			/* the parent element is hovered if the mouse is over its rect and it's not blocked
+			by any other elements */
 			let hovered = !blocked && element.rect.contains_point(mouse_position);
 			element.hovered = hovered;
 			if hovered {
 				blocked = true;
 			}
+			// emit hover/unhover events
 			if hovered && !hovered_previous {
 				self.emit(
 					Event::Hover(node.element_id, relative_mouse_position),
