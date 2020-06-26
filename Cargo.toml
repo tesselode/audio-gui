@@ -1,6 +1,0 @@
-[workspace]
-members = [
-    "knobby",
-	"knobby_ggez_backend",
-	"knobby_test",
-]
