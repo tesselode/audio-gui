@@ -1,4 +1,8 @@
-use crate::{behavior::Behavior, canvas::Canvas, geometry::rect::Rect};
+use crate::{
+	behavior::Behavior,
+	canvas::Canvas,
+	geometry::{rect::Rect, vector::Vector},
+};
 use std::{iter::Zip, ops::Range, slice::Iter};
 
 #[derive(Debug)]
@@ -6,6 +10,7 @@ pub struct Element {
 	pub rect: Rect,
 	pub height: f32,
 	pub parent_index: Option<usize>,
+	pub hover_position: Option<Vector>,
 }
 
 #[derive(Debug)]
@@ -74,6 +79,7 @@ impl Gui {
 				Some(index) => Some(*index),
 				None => None,
 			},
+			hover_position: None,
 		});
 		self.behaviors.push(settings.behavior);
 		self.parent_stack.push(id);
@@ -82,6 +88,40 @@ impl Gui {
 		}
 		self.parent_stack.pop();
 		id
+	}
+
+	fn update_hover_state(
+		&mut self,
+		nodes: &Vec<TreeNode>,
+		mouse_position: Vector,
+		mut blocked: bool,
+	) -> bool {
+		for node in nodes.iter().rev() {
+			let element_position = self
+				.elements
+				.elements
+				.get(node.element_index)
+				.unwrap()
+				.rect
+				.position;
+			if self.update_hover_state(&node.children, mouse_position - element_position, blocked) {
+				blocked = true;
+			}
+			let mut element = self.elements.elements.get_mut(node.element_index).unwrap();
+			if !blocked && element.rect.contains_point(mouse_position) {
+				element.hover_position = Some(mouse_position - element.rect.position);
+				blocked = true;
+			} else {
+				element.hover_position = None;
+			}
+		}
+		blocked
+	}
+
+	pub fn on_move_mouse(&mut self, x: f32, y: f32, dx: f32, dy: f32) {
+		let mouse_position = Vector::new(x, y);
+		let nodes = self.elements.get_tree(None);
+		self.update_hover_state(&nodes, mouse_position, false);
 	}
 
 	fn draw_nodes(&self, nodes: &Vec<TreeNode>, canvas: &mut Canvas) {

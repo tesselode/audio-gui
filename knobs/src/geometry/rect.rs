@@ -20,6 +20,13 @@ impl Rect {
 			..self
 		}
 	}
+
+	pub fn contains_point(&self, point: Vector) -> bool {
+		point.x >= self.position.x
+			&& point.x <= self.position.x + self.size.x
+			&& point.y >= self.position.y
+			&& point.y <= self.position.y + self.size.y
+	}
 }
 
 impl Default for Rect {

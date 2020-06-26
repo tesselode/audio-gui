@@ -53,6 +53,15 @@ impl MainState {
 						.fill(Color::new(0.25, 0.25, 0.25, 0.25))
 						.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
 				)),
+				children: vec![ElementSettings {
+					rect: Rect::new(10.0, 10.0, 25.0, 25.0),
+					behavior: Some(Box::new(
+						Rectangle::new()
+							.fill(Color::new(0.25, 0.25, 0.25, 0.25))
+							.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+					)),
+					..Default::default()
+				}],
 				..Default::default()
 			}],
 			..Default::default()
@@ -62,6 +71,10 @@ impl MainState {
 }
 
 impl ggez::event::EventHandler for MainState {
+	fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
+		self.gui.on_move_mouse(x, y, dx, dy);
+	}
+
 	fn update(&mut self, _ctx: &mut Context) -> GameResult {
 		Ok(())
 	}
