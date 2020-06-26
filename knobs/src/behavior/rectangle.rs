@@ -52,7 +52,7 @@ impl Behavior for Rectangle {
 
 	fn draw_above(&self, element: &Element, canvas: &mut Canvas) {
 		if let Some((width, color)) = self.stroke {
-			if element.hover_position.is_some() {
+			if element.hovered {
 				canvas.draw_rectangle(element.rect, ShapeStyle::Stroke(width * 2.0, color));
 			} else {
 				canvas.draw_rectangle(element.rect, ShapeStyle::Stroke(width, color));

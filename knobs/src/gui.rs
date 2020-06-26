@@ -53,14 +53,8 @@ pub struct Element {
 	pub rect: Rect,
 	pub height: f32,
 	pub parent_id: Option<ElementId>,
-	pub hover_position: Option<Vector>,
+	pub hovered: bool,
 	pub held: EnumMap<MouseButton, bool>,
-}
-
-impl Element {
-	pub fn is_hovered(&self) -> bool {
-		self.hover_position.is_some()
-	}
 }
 
 #[derive(Debug)]
@@ -157,7 +151,7 @@ impl Gui {
 				Some(index) => Some(*index),
 				None => None,
 			},
-			hover_position: None,
+			hovered: false,
 			held: enum_map! {
 				MouseButton::Left => false,
 				MouseButton::Middle => false,
@@ -199,13 +193,11 @@ impl Gui {
 				blocked = true;
 			}
 			let mut element = self.elements.get_mut(node.element_id);
-			let hovered_previous = element.hover_position.is_some();
+			let hovered_previous = element.hovered;
 			let hovered = !blocked && element.rect.contains_point(mouse_position);
+			element.hovered = hovered;
 			if hovered {
-				element.hover_position = Some(relative_mouse_position);
 				blocked = true;
-			} else {
-				element.hover_position = None;
 			}
 			if hovered && !hovered_previous {
 				self.emit(
@@ -229,7 +221,7 @@ impl Gui {
 	pub fn on_press_mouse_button(&mut self, button: MouseButton) {
 		let mut events = vec![];
 		for (id, element) in self.elements.iter_mut() {
-			if element.is_hovered() {
+			if element.hovered {
 				element.held[button] = true;
 				events.push((Event::Press(id, button), Some(id)));
 			}
@@ -245,7 +237,7 @@ impl Gui {
 			if element.held[button] {
 				element.held[button] = false;
 				events.push((Event::Release(id, button), Some(id)));
-				if element.is_hovered() {
+				if element.hovered {
 					events.push((Event::Click(id, button), Some(id)));
 				}
 			}
