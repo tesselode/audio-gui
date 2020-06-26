@@ -45,7 +45,7 @@ impl Iterator for ElementIdIter {
 pub struct Element {
 	pub rect: Rect,
 	pub height: f32,
-	pub parent_index: Option<ElementId>,
+	pub parent_id: Option<ElementId>,
 	pub hover_position: Option<Vector>,
 }
 
@@ -83,10 +83,20 @@ impl Elements {
 		self.elements.get_mut(element_id.index).unwrap()
 	}
 
+	pub fn children_of(&self, parent_id: ElementId) -> Vec<ElementId> {
+		let mut children = vec![];
+		for (id, element) in self.iter() {
+			if element.parent_id == Some(parent_id) {
+				children.push(id);
+			}
+		}
+		children
+	}
+
 	pub fn get_tree(&self, parent_id: Option<ElementId>) -> Vec<TreeNode> {
 		let mut nodes = vec![];
 		for (element_index, element) in self.iter() {
-			if element.parent_index == parent_id {
+			if element.parent_id == parent_id {
 				nodes.push(TreeNode {
 					element_id: element_index,
 					children: self.get_tree(Some(element_index)),
@@ -125,7 +135,7 @@ impl Gui {
 		self.elements.elements.push(Element {
 			rect: settings.rect,
 			height: settings.height,
-			parent_index: match self.parent_stack.last() {
+			parent_id: match self.parent_stack.last() {
 				Some(index) => Some(*index),
 				None => None,
 			},
@@ -186,9 +196,20 @@ impl Gui {
 		}
 	}
 
-	pub fn draw(&self) -> Canvas {
+	fn layout(&mut self, nodes: &Vec<TreeNode>) {
+		for node in nodes {
+			self.layout(&node.children);
+			if let Some(behavior) = self.behaviors.get_mut(&node.element_id) {
+				behavior.layout(&mut self.elements, node.element_id);
+			}
+		}
+	}
+
+	pub fn draw(&mut self) -> Canvas {
 		let mut canvas = Canvas::new();
-		self.draw_nodes(&self.elements.get_tree(None), &mut canvas);
+		let nodes = self.elements.get_tree(None);
+		self.layout(&nodes);
+		self.draw_nodes(&nodes, &mut canvas);
 		canvas
 	}
 }
