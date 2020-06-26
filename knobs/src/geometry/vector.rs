@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Vector {
 	pub x: f32,
 	pub y: f32,

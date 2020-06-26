@@ -1,4 +1,7 @@
-use crate::geometry::rect::Rect;
+use crate::{
+	canvas::{Canvas, Color, ShapeStyle},
+	geometry::rect::Rect,
+};
 
 #[derive(Debug)]
 pub struct Element {
@@ -41,5 +44,16 @@ impl Gui {
 			height: settings.height,
 		});
 		id
+	}
+
+	pub fn draw(&self) -> Canvas {
+		let mut canvas = Canvas::new();
+		for element in &self.elements.elements {
+			canvas.draw_rectangle(
+				element.rect,
+				ShapeStyle::Stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+			)
+		}
+		canvas
 	}
 }

@@ -1,6 +1,6 @@
 use super::vector::Vector;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Rect {
 	pub position: Vector,
 	pub size: Vector,
