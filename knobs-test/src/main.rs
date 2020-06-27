@@ -33,11 +33,11 @@ impl MainState {
 	pub fn new(ctx: &mut Context) -> GameResult<Self> {
 		let mut gui = Gui::new();
 		gui.add(ElementSettings {
-			rect: Rect::from_xywh(50.0, 50.0, 0.0, 0.0),
+			rect: Rect::from_xywh(50.0, 50.0, 500.0, 0.0),
 			behaviors: vec![
 				Box::new(behavior::Rectangle::new().fill(Color::new(0.25, 0.25, 0.25, 1.0))),
 				Box::new(behavior::Row::new(
-					behavior::row::Distribution::Stack(0.0),
+					behavior::row::Distribution::AlignToGrid,
 					0.5,
 				)),
 			],

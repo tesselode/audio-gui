@@ -19,6 +19,22 @@ impl Row {
 		}
 	}
 
+	fn stack(
+		&mut self,
+		elements: &mut crate::gui::Elements,
+		element_id: crate::gui::ElementId,
+		spacing: f32,
+	) {
+		let mut next_x = 0.0;
+		for id in elements.children_of(element_id) {
+			let mut element = elements.get_mut(id);
+			element.rect.position.x = next_x;
+			next_x = element.rect.position.x + element.rect.size.x + spacing;
+		}
+		let element = elements.get_mut(element_id);
+		element.rect.size.x = next_x - spacing;
+	}
+
 	fn distribute(
 		&mut self,
 		elements: &mut crate::gui::Elements,
@@ -26,17 +42,27 @@ impl Row {
 	) {
 		match self.distribution {
 			Distribution::Stack(spacing) => {
-				let mut next_x = 0.0;
-				for id in elements.children_of(element_id) {
-					let mut element = elements.get_mut(id);
-					element.rect.position.x = next_x;
-					next_x = element.rect.position.x + element.rect.size.x + spacing;
-				}
-				let element = elements.get_mut(element_id);
-				element.rect.size.x = next_x - spacing;
+				self.stack(elements, element_id, spacing);
 			}
-			Distribution::SpaceEvenly => {}
-			Distribution::AlignToGrid => {}
+			Distribution::SpaceEvenly => {
+				let mut total_space = elements.get(element_id).rect.width();
+				for id in elements.children_of(element_id) {
+					total_space -= elements.get(id).rect.width();
+				}
+				let space_per_element =
+					total_space / (elements.children_of(element_id).len() - 1) as f32;
+				self.stack(elements, element_id, space_per_element);
+			}
+			Distribution::AlignToGrid => {
+				let child_ids = elements.children_of(element_id);
+				for i in 0..child_ids.len() {
+					let origin = i as f32 / (child_ids.len() - 1) as f32;
+					let child_id = child_ids.get(i).unwrap();
+					let target_x = elements.get(element_id).rect.width() * origin;
+					let child = elements.get_mut(*child_id);
+					child.rect.set_x(target_x, origin);
+				}
+			}
 		}
 	}
 
