@@ -2,10 +2,12 @@ use ggez::{graphics, Context, GameResult};
 use knobs::{
 	behavior::rectangle::Rectangle,
 	canvas::{Color, DrawOperation, ShapeStyle},
-	geometry::rect::Rect,
+	geometry::{rect::Rect, vector::Vector},
 	gui::{ElementSettings, Gui},
 	input::MouseButton,
+	resources::ImageId,
 };
+use std::collections::HashMap;
 
 fn to_ggez_color(color: Color) -> graphics::Color {
 	graphics::Color::new(color.red, color.green, color.blue, color.alpha)
@@ -15,13 +17,34 @@ fn to_ggez_rect(rect: Rect) -> graphics::Rect {
 	graphics::Rect::new(rect.position.x, rect.position.y, rect.size.x, rect.size.y)
 }
 
+fn to_ggez_vector(vector: Vector) -> ggez::mint::Point2<f32> {
+	ggez::mint::Point2 {
+		x: vector.x,
+		y: vector.y,
+	}
+}
+
 struct MainState {
+	images: HashMap<ImageId, graphics::Image>,
 	gui: Gui,
 }
 
 impl MainState {
-	pub fn new() -> Self {
+	pub fn new(ctx: &mut Context) -> GameResult<Self> {
+		let bean_man = include_bytes!("resources/bean man.jpg");
 		let mut gui = Gui::new();
+		let id = gui.resources.load_image(bean_man).unwrap();
+		let image = gui.resources.get_image(id);
+		let mut images = HashMap::new();
+		images.insert(
+			id,
+			graphics::Image::from_rgba8(
+				ctx,
+				image.width() as u16,
+				image.height() as u16,
+				image.as_flat_samples().samples,
+			)?,
+		);
 		gui.add(ElementSettings {
 			children: vec![
 				ElementSettings {
@@ -54,7 +77,7 @@ impl MainState {
 			],
 			..Default::default()
 		});
-		Self { gui }
+		Ok(Self { gui, images })
 	}
 }
 
@@ -103,7 +126,8 @@ impl ggez::event::EventHandler for MainState {
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult {
 		graphics::clear(ctx, graphics::BLACK);
-		let canvas = self.gui.draw();
+		let mut canvas = self.gui.draw();
+		canvas.draw_image(ImageId { index: 0 }, Vector::new(50.0, 50.0));
 		for operation in &canvas.operations {
 			match operation {
 				DrawOperation::DrawRectangle(rect, style) => match style {
@@ -126,6 +150,14 @@ impl ggez::event::EventHandler for MainState {
 						graphics::draw(ctx, &mesh, graphics::DrawParam::new())?;
 					}
 				},
+				DrawOperation::DrawImage(image_id, position) => {
+					let image = self.images.get(&image_id).unwrap();
+					graphics::draw(
+						ctx,
+						image,
+						graphics::DrawParam::new().dest(to_ggez_vector(*position)),
+					)?;
+				}
 			}
 		}
 		graphics::present(ctx)?;
@@ -135,6 +167,7 @@ impl ggez::event::EventHandler for MainState {
 
 fn main() -> GameResult {
 	let (mut ctx, mut event_loop) = ggez::ContextBuilder::new("knobs-test", "tesselode").build()?;
-	ggez::event::run(&mut ctx, &mut event_loop, &mut MainState::new())?;
+	let mut main_state = MainState::new(&mut ctx)?;
+	ggez::event::run(&mut ctx, &mut event_loop, &mut main_state)?;
 	Ok(())
 }

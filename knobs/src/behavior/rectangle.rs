@@ -3,6 +3,7 @@ use crate::{
 	canvas::{Canvas, Color, ShapeStyle},
 	event::{Event, EventQueue},
 	gui::{Element, Elements},
+	resources::Resources,
 };
 
 pub struct Rectangle {
@@ -44,13 +45,13 @@ impl Behavior for Rectangle {
 		}
 	}
 
-	fn draw_below(&self, element: &Element, canvas: &mut Canvas) {
+	fn draw_below(&self, element: &Element, canvas: &mut Canvas, _resources: &Resources) {
 		if let Some(color) = self.fill {
 			canvas.draw_rectangle(element.rect, ShapeStyle::Fill(color));
 		}
 	}
 
-	fn draw_above(&self, element: &Element, canvas: &mut Canvas) {
+	fn draw_above(&self, element: &Element, canvas: &mut Canvas, _resources: &Resources) {
 		if let Some((width, color)) = self.stroke {
 			if element.hovered {
 				canvas.draw_rectangle(element.rect, ShapeStyle::Stroke(width * 2.0, color));

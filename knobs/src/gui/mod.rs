@@ -10,6 +10,7 @@ use crate::{
 	event::{Event, EventQueue},
 	geometry::{rect::Rect, vector::Vector},
 	input::MouseButton,
+	resources::Resources,
 };
 use enum_map::{enum_map, EnumMap};
 use std::collections::HashMap;
@@ -32,6 +33,7 @@ pub struct ElementSettings {
 }
 
 pub struct Gui {
+	pub resources: Resources,
 	pub elements: Elements,
 	pub behaviors: HashMap<ElementId, Box<dyn Behavior>>,
 	event_queue: EventQueue,
@@ -41,6 +43,7 @@ pub struct Gui {
 impl Gui {
 	pub fn new() -> Self {
 		Self {
+			resources: Resources::new(),
 			elements: Elements::new(),
 			behaviors: HashMap::new(),
 			event_queue: EventQueue::new(),
@@ -184,13 +187,13 @@ impl Gui {
 			let element = self.elements.get(node.element_id);
 			let behavior = self.behaviors.get(&node.element_id);
 			if let Some(behavior) = behavior {
-				behavior.draw_below(element, canvas);
+				behavior.draw_below(element, canvas, &self.resources);
 			}
 			canvas.push_translation(element.rect.position);
 			self.draw_nodes(&node.children, canvas);
 			canvas.pop_translation();
 			if let Some(behavior) = behavior {
-				behavior.draw_above(element, canvas);
+				behavior.draw_above(element, canvas, &self.resources);
 			}
 		}
 	}
@@ -199,7 +202,7 @@ impl Gui {
 		for node in nodes {
 			self.layout(&node.children);
 			if let Some(behavior) = self.behaviors.get_mut(&node.element_id) {
-				behavior.layout(&mut self.elements, node.element_id);
+				behavior.layout(&mut self.elements, node.element_id, &self.resources);
 			}
 		}
 	}

@@ -1,4 +1,7 @@
-use crate::geometry::{rect::Rect, vector::Vector};
+use crate::{
+	geometry::{rect::Rect, vector::Vector},
+	resources::ImageId,
+};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Color {
@@ -28,6 +31,7 @@ pub enum ShapeStyle {
 #[derive(Debug, Copy, Clone)]
 pub enum DrawOperation {
 	DrawRectangle(Rect, ShapeStyle),
+	DrawImage(ImageId, Vector),
 }
 
 pub struct Canvas {
@@ -63,6 +67,13 @@ impl Canvas {
 		self.operations.push(DrawOperation::DrawRectangle(
 			rect.shifted(self.get_current_translation()),
 			style,
+		));
+	}
+
+	pub fn draw_image(&mut self, image_id: ImageId, position: Vector) {
+		self.operations.push(DrawOperation::DrawImage(
+			image_id,
+			position + self.get_current_translation(),
 		));
 	}
 }

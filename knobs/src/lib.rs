@@ -4,3 +4,4 @@ pub mod event;
 pub mod geometry;
 pub mod gui;
 pub mod input;
+pub mod resources;
