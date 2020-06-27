@@ -1,6 +1,6 @@
 use ggez::{graphics, Context, GameResult};
 use knobs::{
-	behavior::rectangle::Rectangle,
+	behavior,
 	canvas::{Color, DrawOperation, ShapeStyle},
 	geometry::{rect::Rect, vector::Vector},
 	gui::{ElementSettings, Gui},
@@ -25,40 +25,51 @@ fn to_ggez_vector(vector: Vector) -> ggez::mint::Point2<f32> {
 }
 
 struct MainState {
-	images: HashMap<ImageId, graphics::Image>,
 	gui: Gui,
+	images: HashMap<ImageId, graphics::Image>,
 }
 
 impl MainState {
 	pub fn new(ctx: &mut Context) -> GameResult<Self> {
-		let bean_man = include_bytes!("resources/bean man.jpg");
 		let mut gui = Gui::new();
-		let id = gui.resources.load_image(bean_man).unwrap();
-		let image = gui.resources.get_image(id);
-		let mut images = HashMap::new();
-		images.insert(
-			id,
-			graphics::Image::from_rgba8(
-				ctx,
-				image.width() as u16,
-				image.height() as u16,
-				image.as_flat_samples().samples,
-			)?,
-		);
 		gui.add(ElementSettings {
-			rect: Rect::new(50.0, 50.0, 0.0, 0.0),
+			rect: Rect::from_xywh(50.0, 50.0, 0.0, 0.0),
 			behaviors: vec![
-				Box::new(
-					knobs::behavior::image::Image::new(id).default_scale(Vector::new(0.5, 0.5)),
-				),
-				Box::new(
-					knobs::behavior::rectangle::Rectangle::new()
-						.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-				),
+				Box::new(behavior::Rectangle::new().fill(Color::new(0.25, 0.25, 0.25, 1.0))),
+				Box::new(behavior::Row::new(
+					behavior::row::Distribution::Stack(0.0),
+					0.5,
+				)),
+			],
+			children: vec![
+				ElementSettings {
+					rect: Rect::from_xywh(50.0, 50.0, 50.0, 50.0),
+					behaviors: vec![Box::new(
+						behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+					)],
+					..Default::default()
+				},
+				ElementSettings {
+					rect: Rect::from_xywh(90.0, 150.0, 100.0, 75.0),
+					behaviors: vec![Box::new(
+						behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+					)],
+					..Default::default()
+				},
+				ElementSettings {
+					rect: Rect::from_xywh(150.0, 40.0, 25.0, 125.0),
+					behaviors: vec![Box::new(
+						behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+					)],
+					..Default::default()
+				},
 			],
 			..Default::default()
 		});
-		Ok(Self { gui, images })
+		Ok(Self {
+			gui,
+			images: HashMap::new(),
+		})
 	}
 }
 

@@ -1,5 +1,10 @@
 pub mod image;
 pub mod rectangle;
+pub mod row;
+
+pub use self::image::Image;
+pub use rectangle::Rectangle;
+pub use row::Row;
 
 use crate::{
 	canvas::Canvas,

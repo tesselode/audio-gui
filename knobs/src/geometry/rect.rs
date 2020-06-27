@@ -33,6 +33,14 @@ impl Rect {
 		Vector::new(self.x(origin.x), self.y(origin.y))
 	}
 
+	pub fn width(&self) -> f32 {
+		self.size.x
+	}
+
+	pub fn height(&self) -> f32 {
+		self.size.y
+	}
+
 	pub fn contains_point(&self, point: Vector) -> bool {
 		point.x >= self.position.x
 			&& point.x <= self.position.x + self.size.x
