@@ -10,6 +10,10 @@ impl Vector {
 	pub fn new(x: f32, y: f32) -> Self {
 		Self { x, y }
 	}
+
+	pub fn zero() -> Self {
+		Self::new(0.0, 0.0)
+	}
 }
 
 impl Add for Vector {
@@ -92,5 +96,11 @@ impl Neg for Vector {
 			x: -self.x,
 			y: -self.y,
 		}
+	}
+}
+
+impl PartialEq for Vector {
+	fn eq(&self, other: &Self) -> bool {
+		self.x == other.x && self.y == other.y
 	}
 }

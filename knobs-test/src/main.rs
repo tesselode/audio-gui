@@ -46,35 +46,10 @@ impl MainState {
 			)?,
 		);
 		gui.add(ElementSettings {
-			children: vec![
-				ElementSettings {
-					rect: Rect::new(50.0, 50.0, 25.0, 25.0),
-					behavior: Some(Box::new(
-						Rectangle::new()
-							.fill(Color::new(0.25, 0.25, 0.25, 0.25))
-							.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-					)),
-					..Default::default()
-				},
-				ElementSettings {
-					rect: Rect::new(200.0, 300.0, 100.0, 150.0),
-					behavior: Some(Box::new(
-						Rectangle::new()
-							.fill(Color::new(0.25, 0.25, 0.25, 0.25))
-							.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-					)),
-					..Default::default()
-				},
-				ElementSettings {
-					rect: Rect::new(400.0, 0.0, 50.0, 25.0),
-					behavior: Some(Box::new(
-						Rectangle::new()
-							.fill(Color::new(0.25, 0.25, 0.25, 0.25))
-							.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-					)),
-					..Default::default()
-				},
-			],
+			rect: Rect::new(50.0, 50.0, 0.0, 0.0),
+			behavior: Some(Box::new(
+				knobs::behavior::image::Image::new(id).default_scale(Vector::new(0.5, 0.5)),
+			)),
 			..Default::default()
 		});
 		Ok(Self { gui, images })
@@ -126,8 +101,7 @@ impl ggez::event::EventHandler for MainState {
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult {
 		graphics::clear(ctx, graphics::BLACK);
-		let mut canvas = self.gui.draw();
-		canvas.draw_image(ImageId { index: 0 }, Vector::new(50.0, 50.0));
+		let canvas = self.gui.draw();
 		for operation in &canvas.operations {
 			match operation {
 				DrawOperation::DrawRectangle(rect, style) => match style {
@@ -150,12 +124,15 @@ impl ggez::event::EventHandler for MainState {
 						graphics::draw(ctx, &mesh, graphics::DrawParam::new())?;
 					}
 				},
-				DrawOperation::DrawImage(image_id, position) => {
+				DrawOperation::DrawImage(image_id, position, scale, color) => {
 					let image = self.images.get(&image_id).unwrap();
 					graphics::draw(
 						ctx,
 						image,
-						graphics::DrawParam::new().dest(to_ggez_vector(*position)),
+						graphics::DrawParam::new()
+							.dest(to_ggez_vector(*position))
+							.scale(to_ggez_vector(*scale))
+							.color(to_ggez_color(*color)),
 					)?;
 				}
 			}

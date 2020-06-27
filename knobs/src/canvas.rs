@@ -31,7 +31,7 @@ pub enum ShapeStyle {
 #[derive(Debug, Copy, Clone)]
 pub enum DrawOperation {
 	DrawRectangle(Rect, ShapeStyle),
-	DrawImage(ImageId, Vector),
+	DrawImage(ImageId, Vector, Vector, Color),
 }
 
 pub struct Canvas {
@@ -70,10 +70,12 @@ impl Canvas {
 		));
 	}
 
-	pub fn draw_image(&mut self, image_id: ImageId, position: Vector) {
+	pub fn draw_image(&mut self, image_id: ImageId, position: Vector, scale: Vector, color: Color) {
 		self.operations.push(DrawOperation::DrawImage(
 			image_id,
 			position + self.get_current_translation(),
+			scale,
+			color,
 		));
 	}
 }
