@@ -47,9 +47,15 @@ impl MainState {
 		);
 		gui.add(ElementSettings {
 			rect: Rect::new(50.0, 50.0, 0.0, 0.0),
-			behavior: Some(Box::new(
-				knobs::behavior::image::Image::new(id).default_scale(Vector::new(0.5, 0.5)),
-			)),
+			behaviors: vec![
+				Box::new(
+					knobs::behavior::image::Image::new(id).default_scale(Vector::new(0.5, 0.5)),
+				),
+				Box::new(
+					knobs::behavior::rectangle::Rectangle::new()
+						.stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
+				),
+			],
 			..Default::default()
 		});
 		Ok(Self { gui, images })

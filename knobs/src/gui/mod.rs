@@ -28,14 +28,14 @@ pub struct Element {
 pub struct ElementSettings {
 	pub rect: Rect,
 	pub height: f32,
-	pub behavior: Option<Box<dyn Behavior>>,
+	pub behaviors: Vec<Box<dyn Behavior>>,
 	pub children: Vec<ElementSettings>,
 }
 
 pub struct Gui {
 	pub resources: Resources,
 	pub elements: Elements,
-	pub behaviors: HashMap<ElementId, Box<dyn Behavior>>,
+	pub behaviors: HashMap<ElementId, Vec<Box<dyn Behavior>>>,
 	event_queue: EventQueue,
 	parent_stack: Vec<ElementId>,
 }
@@ -67,9 +67,11 @@ impl Gui {
 				MouseButton::Right => false,
 			},
 		});
-		if let Some(behavior) = settings.behavior {
-			self.behaviors.insert(id, behavior);
+		let mut behaviors = vec![];
+		for behavior in settings.behaviors {
+			behaviors.push(behavior);
 		}
+		self.behaviors.insert(id, behaviors);
 		self.parent_stack.push(id);
 		for child_settings in settings.children {
 			self.add(child_settings);
@@ -86,11 +88,14 @@ impl Gui {
 			}
 			for (event, element_id) in &events {
 				if let Some(id) = element_id {
-					let behavior = self.behaviors.get_mut(&id).unwrap();
-					behavior.on(event, &mut self.elements, &mut self.event_queue);
-				} else {
-					for (_, behavior) in &mut self.behaviors {
+					for behavior in self.behaviors.get_mut(&id).unwrap() {
 						behavior.on(event, &mut self.elements, &mut self.event_queue);
+					}
+				} else {
+					for (_, behaviors) in &mut self.behaviors {
+						for behavior in behaviors {
+							behavior.on(event, &mut self.elements, &mut self.event_queue);
+						}
 					}
 				}
 			}
@@ -185,14 +190,13 @@ impl Gui {
 	fn draw_nodes(&self, nodes: &Vec<TreeNode>, canvas: &mut Canvas) {
 		for node in nodes {
 			let element = self.elements.get(node.element_id);
-			let behavior = self.behaviors.get(&node.element_id);
-			if let Some(behavior) = behavior {
+			for behavior in self.behaviors.get(&node.element_id).unwrap() {
 				behavior.draw_below(element, canvas, &self.resources);
 			}
 			canvas.push_translation(element.rect.position);
 			self.draw_nodes(&node.children, canvas);
 			canvas.pop_translation();
-			if let Some(behavior) = behavior {
+			for behavior in self.behaviors.get(&node.element_id).unwrap() {
 				behavior.draw_above(element, canvas, &self.resources);
 			}
 		}
@@ -201,7 +205,7 @@ impl Gui {
 	fn layout(&mut self, nodes: &Vec<TreeNode>) {
 		for node in nodes {
 			self.layout(&node.children);
-			if let Some(behavior) = self.behaviors.get_mut(&node.element_id) {
+			for behavior in self.behaviors.get_mut(&node.element_id).unwrap() {
 				behavior.layout(&mut self.elements, node.element_id, &self.resources);
 			}
 		}
