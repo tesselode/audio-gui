@@ -1,4 +1,5 @@
 use super::vector::Vector;
+use rusttype::{Font, Scale};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Rect {

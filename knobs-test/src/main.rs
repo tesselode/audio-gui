@@ -38,37 +38,14 @@ impl MainState {
 		let mut fonts = HashMap::new();
 		fonts.insert(id, graphics::Font::new_glyph_font_bytes(ctx, font_data)?);
 		gui.add(ElementSettings {
-			rect: Rect::from_xywh(50.0, 50.0, 0.0, 500.0),
+			rect: Rect::from_xywh(50.0, 50.0, 0.0, 0.0),
 			behaviors: vec![
-				Box::new(behavior::Rectangle::new().fill(Color::new(0.25, 0.25, 0.25, 1.0))),
-				Box::new(behavior::Flex::new(
-					behavior::flex::Axis::Vertical,
-					behavior::flex::Distribution::SpaceEvenly,
-					0.5,
+				Box::new(behavior::Text::new(
+					id,
+					"Hello world!",
+					Vector::new(50.0, 50.0),
 				)),
-			],
-			children: vec![
-				ElementSettings {
-					rect: Rect::from_xywh(50.0, 50.0, 50.0, 50.0),
-					behaviors: vec![Box::new(
-						behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-					)],
-					..Default::default()
-				},
-				ElementSettings {
-					rect: Rect::from_xywh(90.0, 150.0, 100.0, 75.0),
-					behaviors: vec![Box::new(
-						behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-					)],
-					..Default::default()
-				},
-				ElementSettings {
-					rect: Rect::from_xywh(150.0, 40.0, 25.0, 125.0),
-					behaviors: vec![Box::new(
-						behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0)),
-					)],
-					..Default::default()
-				},
+				Box::new(behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0))),
 			],
 			..Default::default()
 		});

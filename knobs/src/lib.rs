@@ -6,3 +6,4 @@ pub mod geometry;
 pub mod gui;
 pub mod input;
 pub mod resources;
+pub mod util;

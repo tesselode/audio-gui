@@ -1,10 +1,12 @@
 pub mod flex;
 pub mod image;
 pub mod rectangle;
+pub mod text;
 
 pub use self::image::Image;
 pub use flex::Flex;
 pub use rectangle::Rectangle;
+pub use text::Text;
 
 use crate::{
 	canvas::Canvas,
