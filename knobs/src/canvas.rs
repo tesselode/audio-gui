@@ -1,6 +1,6 @@
 use crate::{
 	geometry::{rect::Rect, vector::Vector},
-	resources::ImageId,
+	resources::{FontId, ImageId},
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -28,10 +28,11 @@ pub enum ShapeStyle {
 	Stroke(f32, Color),
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum DrawOperation {
 	DrawRectangle(Rect, ShapeStyle),
 	DrawImage(ImageId, Vector, Vector, Color),
+	DrawText(FontId, String, Vector, Vector, Color),
 }
 
 pub struct Canvas {
@@ -74,6 +75,23 @@ impl Canvas {
 		self.operations.push(DrawOperation::DrawImage(
 			image_id,
 			position + self.get_current_translation(),
+			scale,
+			color,
+		));
+	}
+
+	pub fn draw_text(
+		&mut self,
+		font_id: FontId,
+		text: &str,
+		position: Vector,
+		scale: Vector,
+		color: Color,
+	) {
+		self.operations.push(DrawOperation::DrawText(
+			font_id,
+			text.into(),
+			position,
 			scale,
 			color,
 		));

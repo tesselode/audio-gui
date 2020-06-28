@@ -5,7 +5,7 @@ use knobs::{
 	geometry::{rect::Rect, vector::Vector},
 	gui::{ElementSettings, Gui},
 	input::MouseButton,
-	resources::ImageId,
+	resources::{FontId, ImageId},
 };
 use std::collections::HashMap;
 
@@ -26,12 +26,17 @@ fn to_ggez_vector(vector: Vector) -> ggez::mint::Point2<f32> {
 
 struct MainState {
 	gui: Gui,
+	fonts: HashMap<FontId, graphics::Font>,
 	images: HashMap<ImageId, graphics::Image>,
 }
 
 impl MainState {
 	pub fn new(ctx: &mut Context) -> GameResult<Self> {
 		let mut gui = Gui::new();
+		let font_data = include_bytes!("resources/Montserrat-Regular.ttf");
+		let id = gui.resources.load_font(font_data).unwrap();
+		let mut fonts = HashMap::new();
+		fonts.insert(id, graphics::Font::new_glyph_font_bytes(ctx, font_data)?);
 		gui.add(ElementSettings {
 			rect: Rect::from_xywh(50.0, 50.0, 0.0, 500.0),
 			behaviors: vec![
@@ -70,6 +75,7 @@ impl MainState {
 		Ok(Self {
 			gui,
 			images: HashMap::new(),
+			fonts,
 		})
 	}
 }
@@ -120,24 +126,24 @@ impl ggez::event::EventHandler for MainState {
 	fn draw(&mut self, ctx: &mut Context) -> GameResult {
 		graphics::clear(ctx, graphics::BLACK);
 		let canvas = self.gui.draw();
-		for operation in &canvas.operations {
+		for operation in canvas.operations {
 			match operation {
 				DrawOperation::DrawRectangle(rect, style) => match style {
 					ShapeStyle::Fill(color) => {
 						let mesh = graphics::Mesh::new_rectangle(
 							ctx,
 							graphics::DrawMode::fill(),
-							to_ggez_rect(*rect),
-							to_ggez_color(*color),
+							to_ggez_rect(rect),
+							to_ggez_color(color),
 						)?;
 						graphics::draw(ctx, &mesh, graphics::DrawParam::new())?;
 					}
 					ShapeStyle::Stroke(width, color) => {
 						let mesh = graphics::Mesh::new_rectangle(
 							ctx,
-							graphics::DrawMode::stroke(*width),
-							to_ggez_rect(*rect),
-							to_ggez_color(*color),
+							graphics::DrawMode::stroke(width),
+							to_ggez_rect(rect),
+							to_ggez_color(color),
 						)?;
 						graphics::draw(ctx, &mesh, graphics::DrawParam::new())?;
 					}
@@ -148,9 +154,26 @@ impl ggez::event::EventHandler for MainState {
 						ctx,
 						image,
 						graphics::DrawParam::new()
-							.dest(to_ggez_vector(*position))
-							.scale(to_ggez_vector(*scale))
-							.color(to_ggez_color(*color)),
+							.dest(to_ggez_vector(position))
+							.scale(to_ggez_vector(scale))
+							.color(to_ggez_color(color)),
+					)?;
+				}
+				DrawOperation::DrawText(font_id, text, position, scale, color) => {
+					let mut text = graphics::Text::new(text);
+					text.set_font(
+						*self.fonts.get(&font_id).unwrap(),
+						graphics::Scale {
+							x: scale.x,
+							y: scale.y,
+						},
+					);
+					graphics::draw(
+						ctx,
+						&text,
+						graphics::DrawParam::new()
+							.dest(to_ggez_vector(position))
+							.color(to_ggez_color(color)),
 					)?;
 				}
 			}
