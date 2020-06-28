@@ -1,4 +1,4 @@
-use super::Behavior;
+use super::Component;
 
 pub enum Axis {
 	Horizontal,
@@ -157,7 +157,7 @@ impl Flex {
 	}
 }
 
-impl Behavior for Flex {
+impl Component for Flex {
 	fn layout(
 		&mut self,
 		elements: &mut crate::gui::Elements,

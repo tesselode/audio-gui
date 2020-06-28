@@ -1,7 +1,7 @@
 use ggez::{graphics, Context, GameResult};
 use knobs::{
-	behavior,
 	canvas::{Color, DrawOperation, ShapeStyle},
+	component,
 	geometry::{rect::Rect, vector::Vector},
 	gui::{ElementSettings, Gui},
 	input::MouseButton,
@@ -39,13 +39,13 @@ impl MainState {
 		fonts.insert(id, graphics::Font::new_glyph_font_bytes(ctx, font_data)?);
 		gui.add(ElementSettings {
 			rect: Rect::from_xywh(50.0, 50.0, 0.0, 0.0),
-			behaviors: vec![
-				Box::new(behavior::Text::new(
+			components: vec![
+				Box::new(component::Text::new(
 					id,
 					"Hello world!",
 					Vector::new(50.0, 50.0),
 				)),
-				Box::new(behavior::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0))),
+				Box::new(component::Rectangle::new().stroke(2.0, Color::new(1.0, 1.0, 1.0, 1.0))),
 			],
 			..Default::default()
 		});

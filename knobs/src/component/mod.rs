@@ -15,7 +15,7 @@ use crate::{
 	resources::Resources,
 };
 
-pub trait Behavior {
+pub trait Component {
 	fn on(&mut self, _event: &Event, _elements: &mut Elements, _event_queue: &mut EventQueue) {}
 
 	fn layout(&mut self, _elements: &mut Elements, _element_id: ElementId, _resources: &Resources) {

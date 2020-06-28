@@ -5,8 +5,8 @@ pub use element_id::{ElementId, ElementIdIter};
 pub use elements::{Elements, TreeNode};
 
 use crate::{
-	behavior::Behavior,
 	canvas::Canvas,
+	component::Component,
 	event::{Event, EventQueue},
 	geometry::{rect::Rect, vector::Vector},
 	input::MouseButton,
@@ -28,14 +28,14 @@ pub struct Element {
 pub struct ElementSettings {
 	pub rect: Rect,
 	pub height: f32,
-	pub behaviors: Vec<Box<dyn Behavior>>,
+	pub components: Vec<Box<dyn Component>>,
 	pub children: Vec<ElementSettings>,
 }
 
 pub struct Gui {
 	pub resources: Resources,
 	pub elements: Elements,
-	pub behaviors: HashMap<ElementId, Vec<Box<dyn Behavior>>>,
+	pub components: HashMap<ElementId, Vec<Box<dyn Component>>>,
 	event_queue: EventQueue,
 	parent_stack: Vec<ElementId>,
 }
@@ -45,7 +45,7 @@ impl Gui {
 		Self {
 			resources: Resources::new(),
 			elements: Elements::new(),
-			behaviors: HashMap::new(),
+			components: HashMap::new(),
 			event_queue: EventQueue::new(),
 			parent_stack: vec![],
 		}
@@ -67,11 +67,11 @@ impl Gui {
 				MouseButton::Right => false,
 			},
 		});
-		let mut behaviors = vec![];
-		for behavior in settings.behaviors {
-			behaviors.push(behavior);
+		let mut components = vec![];
+		for component in settings.components {
+			components.push(component);
 		}
-		self.behaviors.insert(id, behaviors);
+		self.components.insert(id, components);
 		self.parent_stack.push(id);
 		for child_settings in settings.children {
 			self.add(child_settings);
@@ -88,13 +88,13 @@ impl Gui {
 			}
 			for (event, element_id) in &events {
 				if let Some(id) = element_id {
-					for behavior in self.behaviors.get_mut(&id).unwrap() {
-						behavior.on(event, &mut self.elements, &mut self.event_queue);
+					for component in self.components.get_mut(&id).unwrap() {
+						component.on(event, &mut self.elements, &mut self.event_queue);
 					}
 				} else {
-					for (_, behaviors) in &mut self.behaviors {
-						for behavior in behaviors {
-							behavior.on(event, &mut self.elements, &mut self.event_queue);
+					for (_, components) in &mut self.components {
+						for component in components {
+							component.on(event, &mut self.elements, &mut self.event_queue);
 						}
 					}
 				}
@@ -190,14 +190,14 @@ impl Gui {
 	fn draw_nodes(&self, nodes: &Vec<TreeNode>, canvas: &mut Canvas) {
 		for node in nodes {
 			let element = self.elements.get(node.element_id);
-			for behavior in self.behaviors.get(&node.element_id).unwrap() {
-				behavior.draw_below(element, canvas, &self.resources);
+			for component in self.components.get(&node.element_id).unwrap() {
+				component.draw_below(element, canvas, &self.resources);
 			}
 			canvas.push_translation(element.rect.position);
 			self.draw_nodes(&node.children, canvas);
 			canvas.pop_translation();
-			for behavior in self.behaviors.get(&node.element_id).unwrap() {
-				behavior.draw_above(element, canvas, &self.resources);
+			for component in self.components.get(&node.element_id).unwrap() {
+				component.draw_above(element, canvas, &self.resources);
 			}
 		}
 	}
@@ -205,8 +205,8 @@ impl Gui {
 	fn layout(&mut self, nodes: &Vec<TreeNode>) {
 		for node in nodes {
 			self.layout(&node.children);
-			for behavior in self.behaviors.get_mut(&node.element_id).unwrap() {
-				behavior.layout(&mut self.elements, node.element_id, &self.resources);
+			for component in self.components.get_mut(&node.element_id).unwrap() {
+				component.layout(&mut self.elements, node.element_id, &self.resources);
 			}
 		}
 	}

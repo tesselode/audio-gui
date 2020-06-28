@@ -1,4 +1,4 @@
-use super::Behavior;
+use super::Component;
 use crate::{
 	canvas::{Canvas, Color, ShapeStyle},
 	event::{Event, EventQueue},
@@ -34,7 +34,7 @@ impl Rectangle {
 	}
 }
 
-impl Behavior for Rectangle {
+impl Component for Rectangle {
 	fn on(&mut self, event: &Event, _elements: &mut Elements, _event_queue: &mut EventQueue) {
 		match event {
 			Event::Hover(id, position) => println!("Event::Hover({:?}, {:?})", id, position),

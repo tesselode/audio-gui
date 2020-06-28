@@ -1,4 +1,4 @@
-use super::Behavior;
+use super::Component;
 use crate::{canvas::Color, geometry::vector::Vector, resources::ImageId};
 
 pub struct Image {
@@ -22,7 +22,7 @@ impl Image {
 	}
 }
 
-impl Behavior for Image {
+impl Component for Image {
 	fn layout(
 		&mut self,
 		elements: &mut crate::gui::Elements,

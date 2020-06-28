@@ -1,4 +1,4 @@
-use super::Behavior;
+use super::Component;
 use crate::{canvas::Color, geometry::vector::Vector, resources::FontId, util};
 
 pub struct Text {
@@ -24,7 +24,7 @@ impl Text {
 	}
 }
 
-impl Behavior for Text {
+impl Component for Text {
 	fn layout(
 		&mut self,
 		elements: &mut crate::gui::Elements,
