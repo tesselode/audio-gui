@@ -51,8 +51,8 @@ impl Component for Text {
 			&self.text,
 			element.rect.position,
 			Vector::new(
-				self.scale.x * element.rect.width() / text_size.x,
-				self.scale.y * element.rect.height() / text_size.y,
+				self.scale.x * element.rect.get_width() / text_size.x,
+				self.scale.y * element.rect.get_height() / text_size.y,
 			),
 			self.color,
 		);

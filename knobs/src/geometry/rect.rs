@@ -1,5 +1,4 @@
 use super::vector::Vector;
-use rusttype::{Font, Scale};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Rect {
@@ -22,23 +21,23 @@ impl Rect {
 		}
 	}
 
-	pub fn x(&self, origin: f32) -> f32 {
+	pub fn get_x(&self, origin: f32) -> f32 {
 		self.position.x + self.size.x * origin
 	}
 
-	pub fn y(&self, origin: f32) -> f32 {
+	pub fn get_y(&self, origin: f32) -> f32 {
 		self.position.y + self.size.y * origin
 	}
 
-	pub fn position(&self, origin: Vector) -> Vector {
-		Vector::new(self.x(origin.x), self.y(origin.y))
+	pub fn get_position(&self, origin: Vector) -> Vector {
+		Vector::new(self.get_x(origin.x), self.get_y(origin.y))
 	}
 
-	pub fn width(&self) -> f32 {
+	pub fn get_width(&self) -> f32 {
 		self.size.x
 	}
 
-	pub fn height(&self) -> f32 {
+	pub fn get_height(&self) -> f32 {
 		self.size.y
 	}
 
@@ -80,7 +79,7 @@ impl Rect {
 		self.position.x = x - self.size.x * origin;
 	}
 
-	pub fn at_x(mut self, x: f32, origin: f32) -> Self {
+	pub fn with_x(mut self, x: f32, origin: f32) -> Self {
 		self.set_x(x, origin);
 		self
 	}
@@ -89,7 +88,7 @@ impl Rect {
 		self.position.y = y - self.size.y * origin;
 	}
 
-	pub fn at_y(mut self, y: f32, origin: f32) -> Self {
+	pub fn with_y(mut self, y: f32, origin: f32) -> Self {
 		self.set_y(y, origin);
 		self
 	}

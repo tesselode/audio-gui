@@ -33,16 +33,16 @@ impl Flex {
 	) -> f32 {
 		match self.main_axis {
 			Axis::Horizontal => {
-				let mut total_space = elements.get(element_id).rect.width();
+				let mut total_space = elements.get(element_id).rect.get_width();
 				for id in elements.children_of(element_id) {
-					total_space -= elements.get(id).rect.width();
+					total_space -= elements.get(id).rect.get_width();
 				}
 				total_space / (elements.children_of(element_id).len() - 1) as f32
 			}
 			Axis::Vertical => {
-				let mut total_space = elements.get(element_id).rect.height();
+				let mut total_space = elements.get(element_id).rect.get_height();
 				for id in elements.children_of(element_id) {
-					total_space -= elements.get(id).rect.height();
+					total_space -= elements.get(id).rect.get_height();
 				}
 				total_space / (elements.children_of(element_id).len() - 1) as f32
 			}
@@ -98,7 +98,7 @@ impl Flex {
 					for i in 0..child_ids.len() {
 						let origin = i as f32 / (child_ids.len() - 1) as f32;
 						let child_id = child_ids.get(i).unwrap();
-						let target_x = elements.get(element_id).rect.width() * origin;
+						let target_x = elements.get(element_id).rect.get_width() * origin;
 						let child = elements.get_mut(*child_id);
 						child.rect.set_x(target_x, origin);
 					}
@@ -108,7 +108,7 @@ impl Flex {
 					for i in 0..child_ids.len() {
 						let origin = i as f32 / (child_ids.len() - 1) as f32;
 						let child_id = child_ids.get(i).unwrap();
-						let target_y = elements.get(element_id).rect.height() * origin;
+						let target_y = elements.get(element_id).rect.get_height() * origin;
 						let child = elements.get_mut(*child_id);
 						child.rect.set_y(target_y, origin);
 					}
@@ -120,34 +120,36 @@ impl Flex {
 	fn align(&mut self, elements: &mut crate::gui::Elements, element_id: crate::gui::ElementId) {
 		match self.main_axis {
 			Axis::Horizontal => {
-				if elements.get(element_id).rect.height() == 0.0 {
+				if elements.get(element_id).rect.get_height() == 0.0 {
 					if let Some(max_height) = elements
 						.children_of(element_id)
 						.iter()
-						.map(|id| elements.get(*id).rect.height())
+						.map(|id| elements.get(*id).rect.get_height())
 						.max_by(|a, b| a.partial_cmp(b).unwrap())
 					{
 						elements.get_mut(element_id).rect.set_height(max_height);
 					}
 				}
-				let target_y = elements.get(element_id).rect.height() * self.cross_axis_alignment;
+				let target_y =
+					elements.get(element_id).rect.get_height() * self.cross_axis_alignment;
 				for id in elements.children_of(element_id) {
 					let element = elements.get_mut(id);
 					element.rect.set_y(target_y, self.cross_axis_alignment);
 				}
 			}
 			Axis::Vertical => {
-				if elements.get(element_id).rect.width() == 0.0 {
+				if elements.get(element_id).rect.get_width() == 0.0 {
 					if let Some(max_width) = elements
 						.children_of(element_id)
 						.iter()
-						.map(|id| elements.get(*id).rect.width())
+						.map(|id| elements.get(*id).rect.get_width())
 						.max_by(|a, b| a.partial_cmp(b).unwrap())
 					{
 						elements.get_mut(element_id).rect.set_width(max_width);
 					}
 				}
-				let target_x = elements.get(element_id).rect.width() * self.cross_axis_alignment;
+				let target_x =
+					elements.get(element_id).rect.get_width() * self.cross_axis_alignment;
 				for id in elements.children_of(element_id) {
 					let element = elements.get_mut(id);
 					element.rect.set_x(target_x, self.cross_axis_alignment);
