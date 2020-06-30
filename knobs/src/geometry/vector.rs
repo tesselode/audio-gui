@@ -104,3 +104,9 @@ impl PartialEq for Vector {
 		self.x == other.x && self.y == other.y
 	}
 }
+
+impl std::fmt::Display for Vector {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.write_str(&format!("Vector({}, {})", self.x, self.y))
+	}
+}

@@ -119,6 +119,7 @@ impl Gui {
 		&mut self,
 		nodes: &Vec<TreeNode>,
 		mouse_position: Vector,
+		mouse_delta: Vector,
 		mut blocked: bool,
 	) -> bool {
 		for node in nodes.iter().rev() {
@@ -126,11 +127,17 @@ impl Gui {
 			let relative_mouse_position = mouse_position - element_position;
 			/* update the child elements first. if one of them blocks the parent element,
 			then we know the parent element can't be hovered. */
-			if self.update_hover_state(&node.children, relative_mouse_position, blocked) {
+			if self.update_hover_state(
+				&node.children,
+				relative_mouse_position,
+				mouse_delta,
+				blocked,
+			) {
 				blocked = true;
 			}
 			let mut element = self.elements.get_mut(node.element_id);
 			let hovered_previous = element.hovered;
+			let held = element.held;
 			/* the parent element is hovered if the mouse is over its rect and it's not blocked
 			by any other elements */
 			let hovered = !blocked && element.rect.contains_point(mouse_position);
@@ -148,14 +155,29 @@ impl Gui {
 			if hovered_previous && !hovered {
 				self.emit(Event::Unhover(node.element_id), Some(node.element_id));
 			}
+			// emit drag events
+			for (button, held) in held {
+				if held {
+					self.emit(
+						Event::Drag(
+							node.element_id,
+							button,
+							relative_mouse_position,
+							mouse_delta,
+						),
+						Some(node.element_id),
+					);
+				}
+			}
 		}
 		blocked
 	}
 
 	pub fn on_move_mouse(&mut self, x: f32, y: f32, dx: f32, dy: f32) {
 		let mouse_position = Vector::new(x, y);
+		let mouse_delta = Vector::new(dx, dy);
 		let nodes = self.elements.get_tree(None);
-		self.update_hover_state(&nodes, mouse_position, false);
+		self.update_hover_state(&nodes, mouse_position, mouse_delta, false);
 	}
 
 	pub fn on_press_mouse_button(&mut self, button: MouseButton) {

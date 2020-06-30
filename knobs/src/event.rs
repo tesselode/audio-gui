@@ -6,6 +6,7 @@ pub enum Event {
 	Press(ElementId, MouseButton),
 	Release(ElementId, MouseButton),
 	Click(ElementId, MouseButton),
+	Drag(ElementId, MouseButton, Vector, Vector),
 }
 
 pub struct EventQueue {

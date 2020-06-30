@@ -42,6 +42,10 @@ impl Component for Rectangle {
 			Event::Press(id, button) => println!("Event::Press({:?}, {:?})", id, button),
 			Event::Release(id, button) => println!("Event::Release({:?}, {:?})", id, button),
 			Event::Click(id, button) => println!("Event::Click({:?}, {:?})", id, button),
+			Event::Drag(id, button, position, delta) => println!(
+				"Event::Drag({:?}, {:?}, {}, {})",
+				id, button, position, delta
+			),
 		}
 	}
 
